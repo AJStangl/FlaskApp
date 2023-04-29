@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="image.css">
+    <h1>Curate Image</h1>
+    <div class="container">
+        <div id="image-viewer">
+            <img alt="Image To Curate" src={{ link }} class="modal-content" id="full-image">
+        </div>
+    </div>
+    <div class="container">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input id=title class="col-md-12" value="{{ content.title }}" />
+            <label for="subreddit">Subreddit</label>
+            <input id=subreddit class="col-md-12" value="{{ content.subreddit }}" />
+            <label for="caption">Caption</label>
+            <input id=caption class="col-md-12" value="{{ content.caption }}" />
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <button id="submit" onclick="accept()" class="btn btn-primary">Accept</button>
+        <button id="reject" onclick="reject()" class="btn btn-warning">Reject</button>
+    </div>
+
+    </div>
+
+    <script>
+        function showImage() {
+            $(".images img").click(function () {
+                $("#full-image").attr("src", $(this).attr("src"));
+                $('#image-viewer').show();
+            });
+        }
+
+        function closeImage() {
+            $("#image-viewer .close").click(function () {
+                $('#image-viewer').hide();
+            });
+        }
+
+        function accept() {
+            sendRequest("accept")
+        }
+
+        function reject() {
+            sendRequest("reject");
+        }
+
+        function sendRequest(status) {
+            $.ajax({
+                url: "/curate/",
+                type: "POST",
+                header: {
+                    "content-type": "application/json"
+                },
+                data: {
+                    "id": "{{ content.id }}",
+                    "caption": "{{ content.caption }}",
+                    "action": status
+                },
+                success: function (data) {
+                    console.log(data);
+                    window.location.href = "/";
+                }
+            });
+        }
+    </script>
+
+{% endblock %}

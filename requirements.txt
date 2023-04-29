@@ -1,0 +1,6 @@
+adlfs~=2023.4.0
+pandas~=2.0.1
+Flask~=2.3.1
+tqdm~=4.65.0
+Flask-Bootstrap
+pyarrow
