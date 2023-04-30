@@ -2,7 +2,7 @@
 
 {% block content %}
     <div class="container">
-    <div><p>number of images remaining: {{ num_remaining }}</p></div>
+        <div><p>number of images remaining: {{ num_remaining }}</p></div>
         <div id="image-viewer">
             <img alt="Image To Curate" src={{ link }} class="modal-content" id="full-image">
         </div>
@@ -19,6 +19,10 @@
         <div class="mb-3">
             <label for="title" class="form-label">Subreddit</label>
             <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="model" class="form-label">Model</label>
+            <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
         </div>
         <div class="mb-3">
             <label for="caption" class="form-label">Caption</label>
