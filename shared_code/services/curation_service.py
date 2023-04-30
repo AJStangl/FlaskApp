@@ -1,8 +1,7 @@
 import pandas
-from tqdm import tqdm
 
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
-from shared_code.services.pyarrow_schema import schema
+from shared_code.services.pyarrow_schema import curation_schema
 
 
 class CurationService:
@@ -14,6 +13,7 @@ class CurationService:
 
 	def get_num_remaining_records(self):
 		return len(self.data_frame.loc[self.data_frame['curated'] == False])
+
 	def reset(self):
 		self.file_storage = self._get_file_storage()
 		self.data_frame = self._get_data_frame()
@@ -63,7 +63,14 @@ class CurationService:
 		temp.loc[temp['id'] == record['id'], 'curated'] = record['curated']
 		temp.loc[temp['id'] == record['id'], 'caption'] = record['caption']
 
-		temp.to_parquet('data/parquet/back.parquet', engine="pyarrow", filesystem=self.file_storage, schema=schema)
+		temp.to_parquet('data/parquet/back.parquet', engine="pyarrow", filesystem=self.file_storage, schema=curation_schema)
+		self.data_frame = temp
+		return
+
+	def update_record_tag(self, record):
+		temp = self.data_frame.copy(deep=True)
+		temp.loc[temp['id'] == record['id'], 'tags'] = record['tags']
+		temp.to_parquet('data/parquet/back.parquet', engine="pyarrow", filesystem=self.file_storage, schema=curation_schema)
 		self.data_frame = temp
 		return
 
@@ -77,7 +84,7 @@ class CurationService:
 		return self.data_frame.to_dict(orient='records')
 
 	def _get_data_frame(self):
-		data_frame = pandas.read_parquet('data/parquet/back.parquet', filesystem=self.file_storage, engine='pyarrow', schema=schema)
+		data_frame = pandas.read_parquet('data/parquet/back.parquet', filesystem=self.file_storage, engine='pyarrow', schema=curation_schema)
 		return data_frame
 
 	def _get_file_storage(self):

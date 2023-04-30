@@ -24,6 +24,17 @@ def image(name):
 	return render_template('home.jinja2', link=image_link, content=record, num_remaining=curation_service.get_num_remaining_records())
 
 
+@app.route('/tag/<name>', methods=['POST'])
+def tag(name):
+	record = curation_service.get_record_by_id(name)
+	tags = request.form['tags']
+	tags.split(',')
+	record['tags'] = tags
+	curation_service.update_record_tag(record)
+	image_link = curation_service.get_image_url(record)
+	return render_template('home.jinja2', link=image_link, content=record, num_remaining=curation_service.get_num_remaining_records())
+
+
 @app.route('/curate/', methods=['POST'])
 def curate():
 	image_id = request.form['id']

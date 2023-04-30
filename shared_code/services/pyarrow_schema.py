@@ -1,6 +1,6 @@
 import pyarrow
 
-schema = pyarrow.schema(
+curation_schema = pyarrow.schema(
 	[
 		pyarrow.field("id", pyarrow.string()),
 		pyarrow.field("subreddit", pyarrow.string()),

@@ -4,7 +4,7 @@
     <div class="container">
         <div><p>number of images remaining: {{ num_remaining }}</p></div>
         <div id="image-viewer">
-            <img alt="Image To Curate" src={{ link }} class="modal-content" id="full-image">
+            <img class="modal-content" id="full-image" alt="Image-To-Curate" src={{ link }} >
         </div>
     </div>
     <div class="container">
@@ -21,7 +21,7 @@
             <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
         </div>
         <div class="mb-3">
-            <label for="title" class="form-label">Subreddit</label>
+            <label for="subreddit" class="form-label">Subreddit</label>
             <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
         </div>
         <div class="mb-3">
