@@ -4,7 +4,7 @@
     <div class="container">
         <div><p>number of images remaining: {{ num_remaining }}</p></div>
         <div id="image-viewer">
-            <img alt="Image To Curate" src={{ link }}/>
+            <img alt="Image To Curate" src={{ link }} class="modal-content" id="full-image">
         </div>
     </div>
     <div class="container">
@@ -35,6 +35,19 @@
     </div>
 
     <script>
+        function showImage() {
+            $(".images img").click(function () {
+                $("#full-image").attr("src", $(this).attr("src"));
+                $('#image-viewer').show();
+            });
+        }
+
+        function closeImage() {
+            $("#image-viewer .close").click(function () {
+                $('#image-viewer').hide();
+            });
+        }
+
         function accept() {
             sendRequest("accept")
         }
