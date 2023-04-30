@@ -39,12 +39,14 @@
             $(".images img").click(function () {
                 $("#full-image").attr("src", $(this).attr("src"));
                 $('#image-viewer').show();
+                return;
             });
         }
 
         function closeImage() {
             $("#image-viewer .close").click(function () {
                 $('#image-viewer').hide();
+                return;
             });
         }
 
@@ -71,6 +73,7 @@
                 success: function (data) {
                     console.log(data);
                     window.location.href = `/image/${data.name}`;
+                    return;
                 }
             });
         }

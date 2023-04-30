@@ -1,24 +1,33 @@
 import pandas
-
+import sys
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.services.pyarrow_schema import curation_schema
 
 
 class CurationService:
+
+
+
 	def __init__(self):
 		self.file_storage = self._get_file_storage()
 		self.data_frame = self._get_data_frame()
 		self.records_to_process_iterator = iter(self.get_records_to_process())
 		self.current_record = None
+		sys.setrecursionlimit(100000000)
 
-	def get_num_remaining_records(self):
-		return len(self.data_frame.loc[self.data_frame['curated'] == False])
+	def get_num_remaining_records(self) -> int:
+		not_thing = self.data_frame.loc[self.data_frame['curated'] == False]
+		return len(not_thing)
 
 	def reset(self):
 		self.file_storage = self._get_file_storage()
 		self.data_frame = self._get_data_frame()
 		self.records_to_process_iterator = iter(self.get_records_to_process())
 		self.current_record = None
+
+	def _do_recursion(self, record):
+		pass
+
 
 	def get_next_record(self):
 		if self.current_record is None:
@@ -79,6 +88,12 @@ class CurationService:
 
 	def list_subs(self):
 		return self.data_frame['subreddit'].unique().tolist()
+
+	def filter_subs(self, sub):
+		temp = self.data_frame.loc[self.data_frame['subreddit'] == sub].to_dict(orient='records')
+		self.data_frame = pandas.DataFrame(data=temp)
+		return
+
 
 	def get_records_to_process(self):
 		return self.data_frame.to_dict(orient='records')

@@ -12,3 +12,4 @@ class AzureFileStorageAdapter(object):
 			account_name=self._account_name,
 			account_key=self._account_key,
 			container_name=self.container_name)
+
