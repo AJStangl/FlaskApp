@@ -29,20 +29,26 @@ class CurationService:
 	def _do_recursion(self, record):
 		pass
 
-	def get_next_record(self) -> dict:
-		if self.current_record is None:
-			self.current_record = next(self.records_to_process_iterator)
-			if self._should_curate(self.current_record):
-				return self.current_record
-			else:
-				return self.get_next_record()
-		else:
-			self.current_record = next(self.records_to_process_iterator)
+	def foo(self) -> dict:
+		bar = next(self.records_to_process_iterator)
+		self.current_record = bar
+		return bar
 
-			if self._should_curate(self.current_record):
-				return self.current_record
+
+	def get_next_record(self) -> dict:
+		while True:
+			if self.current_record is None:
+				self.current_record = next(self.records_to_process_iterator)
+				if self._should_curate(self.current_record):
+					return self.current_record
+				else:
+					continue
 			else:
-				return self.get_next_record()
+				if self._should_curate(self.current_record):
+					return self.current_record
+				else:
+					self.current_record = next(self.records_to_process_iterator)
+					continue
 
 	def _should_curate(self, record: dict) -> bool:
 		is_curated = record['curated']
