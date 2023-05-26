@@ -29,11 +29,6 @@ class CurationService:
 	def _do_recursion(self, record):
 		pass
 
-	def foo(self) -> dict:
-		bar = next(self.records_to_process_iterator)
-		self.current_record = bar
-		return bar
-
 
 	def get_next_record(self) -> dict:
 		while True:
