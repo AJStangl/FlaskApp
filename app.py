@@ -21,7 +21,7 @@ def primary():
 
 
 @app.route('/primary/image/<name>', methods=['GET'])
-def image(name):
+def primary_image(name):
 	record = curation_service.get_record_by_id(name)
 	image_link = curation_service.get_image_url(record)
 	return render_template('primary.jinja2', link=image_link, content=record, num_remaining=curation_service.get_num_remaining_records())
