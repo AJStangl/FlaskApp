@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Selection Page</title>
+</head>
+<body>
+    <h1>Welcome to the Selection Page!</h1>
+    <form action="{{ url_for('primary') }}" method="GET">
+        <button type="submit">Primary Page</button>
+    </form>
+    <form action="{{ url_for('secondary') }}" method="GET">
+        <button type="submit">Secondary Page</button>
+    </form>
+</body>
+</html>
+
