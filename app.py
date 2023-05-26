@@ -12,8 +12,11 @@ app = Flask(__name__)
 
 Bootstrap(app)
 
-
+@app.route('/')
+def index():
+    return rendrender_template("selection.jinja2")
 @app.route('/primary')
+
 def primary():
 	curation_service.reset()
 	record = curation_service.get_next_record()
