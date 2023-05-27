@@ -17,6 +17,7 @@ class SecondLayerCurationService:
 
 	def get_image_url(self, record: dict) -> str:
 		return "https://ajdevreddit.blob.core.windows.net/" + record['thumbnail_path']
+
 	def get_num_remaining_records(self) -> int:
 		not_thing = self.data_frame.loc[self.data_frame['thumbnail_curated'] == False]
 		return len(not_thing)
@@ -39,7 +40,11 @@ class SecondLayerCurationService:
 		self.current_record = None
 
 	def get_record_by_id(self, record_id) -> dict:
-		return self.data_frame.loc[self.data_frame['id'] == record_id].to_dict(orient='records')[0]
+		try:
+			return self.data_frame.loc[self.data_frame['id'] == record_id].to_dict(orient='records')
+		except Exception as e:
+			print(e)
+			return {}
 
 	def get_next_record(self) -> dict:
 		while True:

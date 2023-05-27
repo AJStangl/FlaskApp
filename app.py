@@ -12,11 +12,13 @@ app = Flask(__name__)
 
 Bootstrap(app)
 
+
 @app.route('/')
 def index():
-    return rendrender_template("selection.jinja2")
-@app.route('/primary')
+	return render_template("index.jinja2")
 
+
+@app.route('/primary')
 def primary():
 	curation_service.reset()
 	record = curation_service.get_next_record()
@@ -27,7 +29,8 @@ def primary():
 def primary_image(name):
 	record = curation_service.get_record_by_id(name)
 	image_link = curation_service.get_image_url(record)
-	return render_template('primary.jinja2', link=image_link, content=record, num_remaining=curation_service.get_num_remaining_records())
+	return render_template('primary.jinja2', link=image_link, content=record,
+						   num_remaining=curation_service.get_num_remaining_records())
 
 
 @app.route('/primary/tag/<name>', methods=['POST'])
@@ -38,7 +41,8 @@ def tag(name):
 	record['tags'] = tags
 	curation_service.update_record_tag(record)
 	image_link = curation_service.get_image_url(record)
-	return render_template('primary.jinja2', link=image_link, content=record, num_remaining=curation_service.get_num_remaining_records())
+	return render_template('primary.jinja2', link=image_link, content=record,
+						   num_remaining=curation_service.get_num_remaining_records())
 
 
 @app.route('/primary/curate/', methods=['POST'])
@@ -68,9 +72,12 @@ def secondary():
 
 @app.route('/secondary/image/<name>', methods=['GET'])
 def secondary_image(name):
-	record = secondary_curation_service.get_record_by_id(name)
+	record = secondary_curation_service.get_record_by_id(name)[0]
+	if record is None:
+		return secondary_image(secondary_curation_service.get_next_record()['id'])
 	image_link = secondary_curation_service.get_image_url(record)
-	return render_template('secondary.jinja2', link=image_link, content=record, num_remaining=secondary_curation_service.get_num_remaining_records())
+	return render_template('secondary.jinja2', link=image_link, content=record,
+						   num_remaining=secondary_curation_service.get_num_remaining_records())
 
 
 @app.route('/secondary/curate/', methods=['POST'])
