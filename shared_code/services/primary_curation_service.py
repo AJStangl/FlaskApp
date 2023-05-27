@@ -4,12 +4,14 @@ from typing import Optional
 import pandas
 
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
-from shared_code.services.pyarrow_schema import curation_schema
+from shared_code.schemas.pyarrow_schema import primary_curation_schema
+from shared_code.services.base_curation_service import BaseService
 
 
-class CurationService:
+class CurationService(BaseService):
 
 	def __init__(self):
+		super().__init__('data/parquet/primary_caption.parquet')
 		self.file_storage: AzureFileStorageAdapter = self._get_file_storage()
 		self.data_frame: pandas.DataFrame = self._get_data_frame()
 		self.records_to_process_iterator: iter = iter(self.get_records_to_process())
@@ -72,16 +74,14 @@ class CurationService:
 		temp.loc[temp['id'] == record['id'], 'curated'] = record['curated']
 		temp.loc[temp['id'] == record['id'], 'caption'] = record['caption']
 
-		temp.to_parquet('data/parquet/back.parquet', engine="pyarrow", filesystem=self.file_storage,
-						schema=curation_schema)
+		temp.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage, schema=primary_curation_schema)
 		self.data_frame: pandas.DataFrame = temp
 		return None
 
 	def update_record_tag(self, record: dict) -> None:
 		temp: pandas.DataFrame = self.data_frame.copy(deep=True)
 		temp.loc[temp['id'] == record['id'], 'tags']: [] = record['tags']
-		temp.to_parquet('data/parquet/back.parquet', engine="pyarrow", filesystem=self.file_storage,
-						schema=curation_schema)
+		temp.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage, schema=primary_curation_schema)
 		self.data_frame: pandas.DataFrame = temp
 		return None
 
@@ -100,8 +100,8 @@ class CurationService:
 		return self.data_frame.to_dict(orient='records')
 
 	def _get_data_frame(self) -> pandas.DataFrame:
-		data_frame = pandas.read_parquet('data/parquet/back.parquet', filesystem=self.file_storage, engine='pyarrow',
-										 schema=curation_schema)
+		data_frame = pandas.read_parquet(self.parquet_path, filesystem=self.file_storage, engine='pyarrow',
+										 schema=primary_curation_schema)
 		return data_frame
 
 	def _get_file_storage(self) -> AzureFileStorageAdapter:

@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Welcome to the Selection Page!</h1>
-    <form action="{{ url_for('primary') }}" method="GET">
-        <button type="submit">Primary Page</button>
-    </form>
-    <form action="{{ url_for('secondary') }}" method="GET">
-        <button type="submit">Secondary Page</button>
-    </form>
+    <div class="container">
+        <h2>Choose a page to go to:</h2>
+        <div>
+            <form action="{{ url_for('primary') }}" method="GET">
+                <button type="submit">Primary Page</button>
+            </form>
+        </div>
+        <br />
+        <div>
+            <form action="{{ url_for('secondary') }}" method="GET">
+                <button type="submit">Secondary Page</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}
 
 

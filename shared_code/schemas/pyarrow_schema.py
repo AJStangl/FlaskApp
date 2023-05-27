@@ -1,6 +1,6 @@
 import pyarrow
 
-curation_schema = pyarrow.schema(
+primary_curation_schema = pyarrow.schema(
 	[
 		pyarrow.field("id", pyarrow.string()),
 		pyarrow.field("subreddit", pyarrow.string()),
@@ -20,7 +20,7 @@ curation_schema = pyarrow.schema(
 	]
 )
 
-tagging_schema = pyarrow.schema(
+secondary_curation_schema = pyarrow.schema(
 	[
 		pyarrow.field("id", pyarrow.string()),
 		pyarrow.field("subreddit", pyarrow.string()),
