@@ -1,6 +1,6 @@
 import sys
 from typing import Optional
-
+import numpy
 import pandas
 from adlfs import AzureBlobFileSystem
 
@@ -17,7 +17,16 @@ class SecondaryCurationService(BaseService):
 		self.data_frame: pandas.DataFrame = self._get_data_frame()
 		self.records_to_process_iterator: iter = iter(self.get_records_to_process())
 		self.current_record: Optional[dict] = None
+		self.dense_caption_data: pandas.DataFrame = pandas.read_parquet('data/parquet/dense_captions.parquet', engine='pyarrow', filesystem=self.file_storage)
+		self.relevant_tags_data: pandas.DataFrame = pandas.read_parquet("data/parquet/tags.parquet", engine='pyarrow', filesystem=self.file_storage)
 		sys.setrecursionlimit(100000000)
+
+	def get_dense_captions(self, record_id: str) -> list[dict]:
+		return self.dense_caption_data.loc[self.dense_caption_data['id'] == record_id, ['text', 'confidence']].to_dict(orient='records')
+
+	def get_relevant_tags(self, record_id: str) -> list[str]:
+		return self.relevant_tags_data.loc[self.relevant_tags_data['id'] == record_id, ['name', 'confidence']].to_dict(orient='records')
+
 
 	def get_num_remaining_records(self) -> int:
 		not_thing = self.data_frame.loc[self.data_frame['thumbnail_curated'] == False]
@@ -52,7 +61,7 @@ class SecondaryCurationService(BaseService):
 	def get_image_url(self, record: dict) -> str:
 		return "https://ajdevreddit.blob.core.windows.net/" + record['thumbnail_path']
 
-	def update_record(self, record_id: str, action: str, caption: str) -> None:
+	def update_record(self, record_id: str, action: str, caption: str, additional_captions: list[str], relevant_tags: list[str]) -> None:
 		record = self.current_record
 		if record['id'] != record_id:
 			raise Exception("Record Ids Do Not Match")
@@ -66,11 +75,13 @@ class SecondaryCurationService(BaseService):
 		record['azure_caption'] = caption
 
 		temp: pandas.DataFrame = self.data_frame.copy(deep=True)
-
-		temp.loc[temp['id'] == record['id'], 'thumbnail_accept'] = record['thumbnail_accept']
-		temp.loc[temp['id'] == record['id'], 'thumbnail_curated'] = record['thumbnail_curated']
-		temp.loc[temp['id'] == record['id'], 'azure_caption'] = record['azure_caption']
-
+		temp.set_index('id', drop=False, inplace=True)
+		temp.at[record_id, 'thumbnail_accept'] = record['thumbnail_accept']
+		temp.at[record_id, 'thumbnail_curated'] = record['thumbnail_curated']
+		temp.at[record_id, 'azure_caption'] = record['azure_caption']
+		temp.at[record_id, 'additional_captions'] = [item for item in additional_captions]
+		temp.at[record_id, 'tags'] = [item for item in relevant_tags]
+		temp.reset_index(drop=True, inplace=True)
 		temp.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage, schema=secondary_curation_schema)
 		self.data_frame: pandas.DataFrame = temp
 		return None

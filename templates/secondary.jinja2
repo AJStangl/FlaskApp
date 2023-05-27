@@ -4,13 +4,59 @@
     <div class="container">
         <div><p>number of images remaining: {{ num_remaining }}</p></div>
         <div id="image-viewer">
-            <img class="modal-content" id="full-image" alt="Image-To-Curate" src={{ link }} >
+            <img class="modal-content" id="full-image" alt="Image-To-Curate" src={{ link }}>
         </div>
     </div>
     <div class="container">
         <div class="mb-3">
             <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
             <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
+        </div>
+        <div class="mb3">
+            <table border="1" width="100%" class="table-striped">
+                <tr>
+                    <th>Accept</th>
+                    <th>Text</th>
+                    <th>Confidence</th>
+                </tr>
+                {% for i in range(content.dense_captions | length) %}
+                    <tr id={{ i }}>
+                        <td id="check-box-{{ i }}">
+                            <label for="additional-caption-{{ i }}">Accept</label>
+                            <input type="checkbox" id="additional-caption-{{ i }}"
+                                   value="{{ content.dense_captions[i].get('text') }}" class="btn btn-primary"
+                                   onclick="setCaptions({{ i }})">
+                        </td>
+                        <td id="caption-text-{{ i }}">{{ content.dense_captions[i].get('text') }}</td>
+                        <td id="caption-confidence-{{ i }}">{{ content.dense_captions[i].get('confidence') }}</td>
+                    <tr/>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="mb3">
+            <table border="1" width="100%" class="table-striped">
+                <tr>
+                    <th>Accept</th>
+                    <th>Name</th>
+                    <th>Confidence</th>
+                </tr>
+                {% for i in range(content.tags | length) %}
+                    <tr id={{ i }}>
+                        <td id="check-box-{{ i }}">
+                            <label for="relevant-tag-{{ i }}">Accept</label>
+                            <input type="checkbox" id="relevant-tag-{{ i }}"
+                                   value="{{ content.tags[i].get('name') }}" class="btn btn-primary"
+                                   onclick="setTag({{ i }})">
+                        </td>
+                        <td id="tag-text-{{ i }}">{{ content.tags[i].get('name') }}</td>
+                        <td id="tag-confidence-{{ i }}">{{ content.tags[i].get('confidence') }}</td>
+                    <tr/>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="mb-3">
+            <label for="caption" class="form-label">Caption</label>
+            <textarea class="form-control" id="caption" rows="3">{{ content.azure_caption }}</textarea>
         </div>
         <div class="mb-3">
             <label for="id" class="form-label">Id</label>
@@ -28,13 +74,40 @@
             <label for="model" class="form-label">Model</label>
             <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
         </div>
-        <div class="mb-3">
-            <label for="caption" class="form-label">Caption</label>
-            <textarea class="form-control" id="caption" rows="3">{{ content.azure_caption }}</textarea>
-        </div>
     </div>
 
     <script>
+        function setTag(i) {
+            var id = $('#relevant-tag-' + i).attr('id');
+            var thing = document.getElementById(id);
+            var checked = thing.checked;
+
+            var text_id = $('#tag-text-' + i).attr('id');
+            var text_thing = document.getElementById(text_id);
+            var text = text_thing.innerHTML;
+            if (checked) {
+                $('#relevant-tag-' + i).val(text);
+            } else {
+                $('#relevant-tag-' + i).val("");
+            }
+        }
+
+
+        function setCaptions(i) {
+            var id = $('#additional-caption-' + i).attr('id');
+            var thing = document.getElementById(id);
+            var checked = thing.checked;
+
+            var text_id = $('#caption-text-' + i).attr('id');
+            var text_thing = document.getElementById(text_id);
+            var text = text_thing.innerHTML;
+            if (checked) {
+                $('#additional-caption-' + i).val(text);
+            } else {
+                $('#additional-caption-' + i).val("");
+            }
+        }
+
         function showImage() {
             $(".images img").click(function () {
                 $("#full-image").attr("src", $(this).attr("src"));
@@ -59,6 +132,27 @@
         }
 
         function sendRequest(status) {
+            var captions = [];
+            var tags = [];
+             {% for i in range(content.dense_captions | length) %}
+                var id = $('#additional-caption-{{ i }}').attr('id');
+                var thing = document.getElementById(id);
+                var checked = thing.checked;
+                if (checked) {
+                    var data = $('#additional-caption-{{ i }}').val();
+                    captions.push(data);
+                }
+            {% endfor %}
+            {% for i in range(content.tags | length) %}
+                var id = $('#relevant-tag-{{ i }}').attr('id');
+                var thing = document.getElementById(id);
+                var checked = thing.checked;
+                if (checked) {
+                    var data = $('#relevant-tag-{{ i }}').val();
+                    tags.push(data);
+                }
+            {% endfor %}
+
             $.ajax({
                 url: "/secondary/curate/",
                 type: "POST",
@@ -68,7 +162,9 @@
                 data: {
                     "id": "{{ content.id }}",
                     "caption": $("#caption").val(),
-                    "action": status
+                    "action": status,
+                    "additional_captions": captions.join(','),
+                    "additional_tags": tags.join(','),
                 },
                 success: function (data) {
                     console.log(data);

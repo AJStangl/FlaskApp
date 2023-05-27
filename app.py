@@ -73,9 +73,15 @@ def secondary():
 @app.route('/secondary/image/<name>', methods=['GET'])
 def secondary_image(name):
 	record: dict = secondary_curation_service.get_record_by_id(name)
+	dense_captions: list[dict] = secondary_curation_service.get_dense_captions(name)
+	relevant_tags: list[dict] = secondary_curation_service.get_relevant_tags(name)
 	if record is None:
 		return secondary_image(secondary_curation_service.get_next_record()['id'])
 	image_link = secondary_curation_service.get_image_url(record)
+
+	record['dense_captions'] = dense_captions
+	record['tags'] = relevant_tags
+
 	return render_template('secondary.jinja2', link=image_link, content=record,
 						   num_remaining=secondary_curation_service.get_num_remaining_records())
 
@@ -85,8 +91,10 @@ def secondary_curate():
 	image_id = request.form['id']
 	action = request.form['action']
 	caption = request.form['caption']
+	additional_captions = request.form['additional_captions'].split(',')
+	additional_tags = request.form['additional_tags'].split(',')
 	try:
-		secondary_curation_service.update_record(image_id, action, caption)
+		secondary_curation_service.update_record(image_id, action, caption, additional_captions, additional_tags)
 		record = secondary_curation_service.get_next_record()
 		return {
 			'success': True,
