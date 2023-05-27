@@ -16,7 +16,13 @@ class SecondLayerCurationService:
 		sys.setrecursionlimit(100000000)
 
 	def get_image_url(self, record: dict) -> str:
-		return "https://ajdevreddit.blob.core.windows.net/" + record['thumbnail_path']
+		try:
+			if record['thumbnail_path'] is not None:
+				endpoint = "https://ajdevreddit.blob.core.windows.net/data/image/thumbnail/" + record["id"] + ".jpg"
+				return endpoint
+		except Exception as e:
+			print(e)
+			pass
 
 	def get_num_remaining_records(self) -> int:
 		not_thing = self.data_frame.loc[self.data_frame['thumbnail_curated'] == False]
@@ -31,7 +37,9 @@ class SecondLayerCurationService:
 		return AzureFileStorageAdapter("data").get_file_storage()
 
 	def get_records_to_process(self) -> list[dict]:
-		return self.data_frame.to_dict(orient='records')
+		bruh = self.data_frame.loc[self.data_frame['thumbnail_exists'] == True]
+		bro = bruh.loc[bruh['thumbnail_curated'] == False]
+		return bro.to_dict(orient='records')
 
 	def reset(self):
 		self.file_storage = self._get_file_storage()
@@ -41,7 +49,11 @@ class SecondLayerCurationService:
 
 	def get_record_by_id(self, record_id) -> dict:
 		try:
-			return self.data_frame.loc[self.data_frame['id'] == record_id].to_dict(orient='records')
+			record: [dict] = self.data_frame.loc[self.data_frame['id'] == record_id].to_dict(orient='records')
+			if len(record) != 1:
+				return {}
+			record = record[0]
+			return record
 		except Exception as e:
 			print(e)
 			return {}

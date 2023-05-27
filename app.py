@@ -72,7 +72,7 @@ def secondary():
 
 @app.route('/secondary/image/<name>', methods=['GET'])
 def secondary_image(name):
-	record = secondary_curation_service.get_record_by_id(name)[0]
+	record: dict = secondary_curation_service.get_record_by_id(name)
 	if record is None:
 		return secondary_image(secondary_curation_service.get_next_record()['id'])
 	image_link = secondary_curation_service.get_image_url(record)
