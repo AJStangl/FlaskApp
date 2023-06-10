@@ -17,10 +17,8 @@ class SecondaryCurationService(BaseService):
 		self.data_frame: pandas.DataFrame = self._get_data_frame()
 		self.records_to_process_iterator: iter = iter(self.get_records_to_process())
 		self.current_record: Optional[dict] = None
-		self.dense_caption_data: pandas.DataFrame = pandas.read_parquet('data/parquet/dense_captions.parquet',
-																		engine='pyarrow', filesystem=self.file_storage)
-		self.relevant_tags_data: pandas.DataFrame = pandas.read_parquet("data/parquet/tags.parquet", engine='pyarrow',
-																		filesystem=self.file_storage)
+		self.dense_caption_data: pandas.DataFrame = pandas.read_parquet('data/parquet/dense_captions.parquet', engine='pyarrow', filesystem=self.file_storage)
+		self.relevant_tags_data: pandas.DataFrame = pandas.read_parquet("data/parquet/tags.parquet", engine='pyarrow', filesystem=self.file_storage)
 		sys.setrecursionlimit(100000000)
 
 	def get_dense_captions(self, record_id: str) -> list[dict]:
@@ -53,7 +51,10 @@ class SecondaryCurationService(BaseService):
 				if self._should_curate(self.current_record):
 					return self.current_record
 				else:
-					self.current_record = next(self.records_to_process_iterator)
+					try:
+						self.current_record = next(self.records_to_process_iterator)
+					except StopIteration:
+						return None
 					continue
 
 	def _should_curate(self, record: dict) -> bool:
@@ -98,8 +99,7 @@ class SecondaryCurationService(BaseService):
 	def update_record_tag(self, record: dict) -> None:
 		temp: pandas.DataFrame = self.data_frame.copy(deep=True)
 		temp.loc[temp['id'] == record['id'], 'tags']: [] = record['tags']
-		temp.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage,
-						schema=secondary_curation_schema)
+		temp.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage, schema=secondary_curation_schema)
 		self.data_frame: pandas.DataFrame = temp
 		return None
 

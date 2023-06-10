@@ -2,6 +2,7 @@ import sys
 from typing import Optional
 
 import pandas
+from adlfs import AzureBlobFileSystem
 
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.schemas.pyarrow_schema import primary_curation_schema
@@ -44,7 +45,10 @@ class CurationService(BaseService):
 				if self._should_curate(self.current_record):
 					return self.current_record
 				else:
-					self.current_record = next(self.records_to_process_iterator)
+					try:
+						self.current_record = next(self.records_to_process_iterator)
+					except StopIteration:
+						return None
 					continue
 
 	def _should_curate(self, record: dict) -> bool:
@@ -55,7 +59,7 @@ class CurationService(BaseService):
 	def get_image_url(self, record: dict) -> str:
 		return "https://ajdevreddit.blob.core.windows.net/" + record['path']
 
-	def update_record(self, record_id: str, action: str, caption: str) -> None:
+	def update_record(self, record_id: str, action: str, caption: str, additional_captions: list[str], relevant_tags: list[str]) -> None:
 		record = self.current_record
 		if record['id'] != record_id:
 			raise Exception("Record Ids Do Not Match")
@@ -104,5 +108,5 @@ class CurationService(BaseService):
 										 schema=primary_curation_schema)
 		return data_frame
 
-	def _get_file_storage(self) -> AzureFileStorageAdapter:
+	def _get_file_storage(self) -> AzureBlobFileSystem:
 		return AzureFileStorageAdapter("data").get_file_storage()

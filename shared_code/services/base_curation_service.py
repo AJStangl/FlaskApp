@@ -29,7 +29,8 @@ class BaseService(ABC):
 		pass
 
 	@abstractmethod
-	def update_record(self, record_id: str, action: str, caption: str) -> None:
+	def update_record(self, record_id: str, action: str, caption: str, additional_captions: list[str],
+					  relevant_tags: list[str]) -> None:
 		pass
 
 	@abstractmethod

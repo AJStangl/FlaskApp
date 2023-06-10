@@ -1,12 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_bootstrap import Bootstrap
 
+from shared_code.services.azure_caption_process import AzureCaption
 from shared_code.services.secondary_curation_service import SecondaryCurationService
 from shared_code.services.primary_curation_service import CurationService
 
 primary_curation_service: CurationService = CurationService()
 
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService()
+
+azure_caption: AzureCaption = AzureCaption()
 
 app = Flask(__name__)
 
@@ -21,8 +24,13 @@ def index():
 @app.route('/primary')
 def primary():
 	primary_curation_service.reset()
-	record = primary_curation_service.get_next_record()
-	return redirect(url_for('primary_image', name=record['id']))
+	try:
+		record = primary_curation_service.get_next_record()
+		if record is None:
+			return render_template('error.jinja2', error="No more records to process")
+		return redirect(url_for('primary_image', name=record['id']))
+	except Exception:
+		return render_template('error.jinja2', error="An error has happened, woops")
 
 
 @app.route('/primary/image/<name>', methods=['GET'])
@@ -51,8 +59,13 @@ def curate():
 	action = request.form['action']
 	caption = request.form['caption']
 	try:
-		primary_curation_service.update_record(image_id, action, caption)
+		if action == 'accept':
+			azure_caption.run_image_process(image_id)
+
+		primary_curation_service.update_record(image_id, action, caption, [], [])
+
 		record = primary_curation_service.get_next_record()
+
 		return {
 			'success': True,
 			'message': 'Record Updated',
@@ -66,8 +79,13 @@ def curate():
 @app.route('/secondary')
 def secondary():
 	secondary_curation_service.reset()
-	record = secondary_curation_service.get_next_record()
-	return redirect(url_for('secondary_image', name=record['id']))
+	try:
+		record = secondary_curation_service.get_next_record()
+		if record is None:
+			return render_template('error.jinja2', error="No more records to process")
+		return redirect(url_for('secondary_image', name=record['id']))
+	except Exception:
+		return render_template('error.jinja2', error="An error has happened, woops")
 
 
 @app.route('/secondary/image/<name>', methods=['GET'])
