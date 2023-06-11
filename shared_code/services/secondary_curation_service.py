@@ -60,11 +60,12 @@ class SecondaryCurationService(BaseService):
 	def _should_curate(self, record: dict) -> bool:
 		is_curated = record['thumbnail_curated']
 		is_accepted = record['thumbnail_accept']
+		has_caption = record['azure_caption'] == ""
 		is_sexy = (record['model'] == 'SexyDiffusion') or (record['model'] == 'SWFPetite') or (
 					record['model'] == 'RedHeadDiffusion') or (record['model'] == 'NextDoorGirlsDiffusion') or (
 							  record['model'] == 'SexyAsianDiffusion' or (record['model'] == 'PrettyGirlDiffusion'))
 
-		return not is_curated and not is_accepted and is_sexy
+		return not is_curated and not is_accepted and is_sexy and has_caption
 
 	def get_image_url(self, record: dict) -> str:
 		return "https://ajdevreddit.blob.core.windows.net/" + record['thumbnail_path']
@@ -124,3 +125,17 @@ class SecondaryCurationService(BaseService):
 
 	def _get_file_storage(self) -> AzureBlobFileSystem:
 		return AzureFileStorageAdapter("data").get_file_storage()
+
+	def add_new_record(self, record):
+		temp: pandas.DataFrame = self._get_data_frame()
+		record["azure_caption"] = ""
+		record["thumbnail_path"] = ""
+		record["thumbnail_exists"] = False
+		record["thumbnail_curated"] = False
+		record["thumbnail_accept"] = False
+		record["additional_captions"] = [""]
+		record["tags"] = [""]
+		df = pandas.DataFrame(data=[record])
+		concat = pandas.concat([temp, df], ignore_index=True)
+		concat.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage, schema=secondary_curation_schema)
+		return None

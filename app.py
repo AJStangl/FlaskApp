@@ -61,8 +61,11 @@ def curate():
 	try:
 		if action == 'accept':
 			azure_caption.run_image_process(image_id)
-
-		primary_curation_service.update_record(image_id, action, caption, [], [])
+			primary_curation_service.update_record(image_id, action, caption, [], [])
+			record = primary_curation_service.get_record_by_id(image_id)
+			secondary_curation_service.add_new_record(record)
+		else:
+			primary_curation_service.update_record(image_id, action, caption, [], [])
 
 		record = primary_curation_service.get_next_record()
 
