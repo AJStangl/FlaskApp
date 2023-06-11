@@ -63,7 +63,7 @@ class SecondaryCurationService(BaseService):
 		has_caption = record['azure_caption'] == ""
 		is_sexy = (record['model'] == 'SexyDiffusion') or (record['model'] == 'SWFPetite') or (
 					record['model'] == 'RedHeadDiffusion') or (record['model'] == 'NextDoorGirlsDiffusion') or (
-							  record['model'] == 'SexyAsianDiffusion' or (record['model'] == 'PrettyGirlDiffusion'))
+							  record['model'] == 'SexyAsianDiffusion' or (record['model'] == 'PrettyGirlDiffusion') or (record['model'] == 'SexyDressDiffusion'))
 
 		return not is_curated and not is_accepted and is_sexy and has_caption
 
