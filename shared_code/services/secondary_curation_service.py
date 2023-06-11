@@ -17,8 +17,10 @@ class SecondaryCurationService(BaseService):
 		self.data_frame: pandas.DataFrame = self._get_data_frame()
 		self.records_to_process_iterator: iter = iter(self.get_records_to_process())
 		self.current_record: Optional[dict] = None
-		self.dense_caption_data: pandas.DataFrame = pandas.read_parquet('data/parquet/dense_captions.parquet', engine='pyarrow', filesystem=self.file_storage)
-		self.relevant_tags_data: pandas.DataFrame = pandas.read_parquet("data/parquet/tags.parquet", engine='pyarrow', filesystem=self.file_storage)
+		self.dense_caption_data: pandas.DataFrame = pandas.read_parquet('data/parquet/dense_captions.parquet',
+																		engine='pyarrow', filesystem=self.file_storage)
+		self.relevant_tags_data: pandas.DataFrame = pandas.read_parquet("data/parquet/tags.parquet", engine='pyarrow',
+																		filesystem=self.file_storage)
 		sys.setrecursionlimit(100000000)
 
 	def get_dense_captions(self, record_id: str) -> list[dict]:
@@ -53,19 +55,17 @@ class SecondaryCurationService(BaseService):
 				else:
 					try:
 						self.current_record = next(self.records_to_process_iterator)
+						continue
 					except StopIteration:
 						return None
-					continue
+
 
 	def _should_curate(self, record: dict) -> bool:
 		is_curated = record['thumbnail_curated']
 		is_accepted = record['thumbnail_accept']
-		has_caption = record['azure_caption'] == ""
-		is_sexy = (record['model'] == 'SexyDiffusion') or (record['model'] == 'SWFPetite') or (
-					record['model'] == 'RedHeadDiffusion') or (record['model'] == 'NextDoorGirlsDiffusion') or (
-							  record['model'] == 'SexyAsianDiffusion' or (record['model'] == 'PrettyGirlDiffusion') or (record['model'] == 'SexyDressDiffusion'))
+		is_sexy = record['subreddit'] in ["selfies", "Amicute", "amihot", "AmIhotAF", "HotGirlNextDoor","sfwpetite","cougars_and_milfs_sfw","SFWRedheads", "SFWNextDoorGirls","SunDressesGoneWild", "ShinyDresses", "SlitDresses", "CollaredDresses", "DressesPorn","WomenInLongDresses", "Dresses", "realasians", "KoreanHotties", "prettyasiangirls", "AsianOfficeLady", "AsianInvasion","AesPleasingAsianGirls", "sexygirls", "PrettyGirls", "gentlemanboners" "hotofficegirls", "tightdresses", "DLAH", "TrueFMK"]
 
-		return not is_curated and not is_accepted and is_sexy and has_caption
+		return not is_curated and not is_accepted and is_sexy
 
 	def get_image_url(self, record: dict) -> str:
 		return "https://ajdevreddit.blob.core.windows.net/" + record['thumbnail_path']
@@ -100,7 +100,8 @@ class SecondaryCurationService(BaseService):
 	def update_record_tag(self, record: dict) -> None:
 		temp: pandas.DataFrame = self.data_frame.copy(deep=True)
 		temp.loc[temp['id'] == record['id'], 'tags']: [] = record['tags']
-		temp.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage, schema=secondary_curation_schema)
+		temp.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage,
+						schema=secondary_curation_schema)
 		self.data_frame: pandas.DataFrame = temp
 		return None
 
@@ -137,5 +138,6 @@ class SecondaryCurationService(BaseService):
 		record["tags"] = [""]
 		df = pandas.DataFrame(data=[record])
 		concat = pandas.concat([temp, df], ignore_index=True)
-		concat.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage, schema=secondary_curation_schema)
+		concat.to_parquet(self.parquet_path, engine="pyarrow", filesystem=self.file_storage,
+						  schema=secondary_curation_schema)
 		return None

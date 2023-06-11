@@ -47,9 +47,9 @@ class CurationService(BaseService):
 				else:
 					try:
 						self.current_record = next(self.records_to_process_iterator)
+						continue
 					except StopIteration:
 						return None
-					continue
 
 	def _should_curate(self, record: dict) -> bool:
 		is_curated = record['curated']
