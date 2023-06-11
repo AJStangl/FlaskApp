@@ -127,5 +127,16 @@ def secondary_curate():
 		return redirect(url_for('secondary'))
 
 
+@app.route('/secondary/analysis/', methods=['POST'])
+def secondary_analysis():
+	image_id = request.form['id']
+	try:
+		out = azure_caption.run_image_process(image_id)
+		return {'success': True, 'message': 'Record Updated', 'name': f'{image_id}', 'out': out}
+	except Exception as e:
+		print(e)
+		return redirect(url_for('secondary'))
+
+
 if __name__ == '__main__':
 	app.run()

@@ -11,6 +11,7 @@
         <div class="mb-3">
             <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
             <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
+            <button id="analysis" class="btn btn-success" onclick="sendForAnalysis()">Send For Analysis</button>
         </div>
         <div class="mb3">
             <table border="1" width="100%" class="table-striped">
@@ -125,6 +126,24 @@
 
         function accept() {
             sendRequest("accept")
+        }
+
+        function sendForAnalysis() {
+            $.ajax({
+                url: "/secondary/analysis/",
+                type: "POST",
+                header: {
+                    "content-type": "application/json"
+                },
+                data: {
+                    "id": "{{ content.id }}"
+                },
+                success: function (data) {
+                    console.log(data);
+                    alert(JSON.stringify(data));
+                    return;
+                }
+            });
         }
 
         function reject() {

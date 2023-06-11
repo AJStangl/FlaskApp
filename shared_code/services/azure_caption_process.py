@@ -23,17 +23,17 @@ class AzureCaption(object):
 	def run_image_process(self, image_id: str):
 		fs = AzureFileStorageAdapter("data").get_file_storage()
 		try:
-			fs.download(f"data/image/{image_id}.jpg", "temp.jpg")
-			image_analyzer: ImageAnalyzer = self._get_image_analyzer(image_path="temp.jpg")
 			out_path = f"data/caption/{image_id}.json"
+			temp_url = "https://ajdevreddit.blob.core.windows.net/data/image/" + image_id + ".jpg"
 			if fs.exists(out_path):
 				print(f"File already exists: {out_path}")
 				return out_path
+			image_analyzer: ImageAnalyzer = self._get_image_analyzer(image_url=temp_url)
+
 			try:
 				image_analysis_result: ImageAnalysisResult = image_analyzer.analyze()
 				if image_analysis_result.reason == ImageAnalysisResultReason.ANALYZED:
-					image_json_result: ImageAnalysisResultDetails = ImageAnalysisResultDetails.from_result(
-						image_analysis_result)
+					image_json_result: ImageAnalysisResultDetails = ImageAnalysisResultDetails.from_result(image_analysis_result)
 					if image_json_result is not None:
 						json_result = image_json_result.json_result
 						with fs.open(out_path, 'w', encoding='utf-8') as handle:
