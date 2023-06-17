@@ -26,7 +26,7 @@
                             <label for="additional-caption-{{ i }}">Accept</label>
                             <input type="checkbox" id="additional-caption-{{ i }}"
                                    value="{{ content.dense_captions[i].get('text') }}" class="btn btn-primary"
-                                   onclick="setCaptions({{ i }})">
+                                   onclick="setCaptions({{ i }})" checked>
                         </td>
                         <td id="caption-text-{{ i }}">{{ content.dense_captions[i].get('text') }}</td>
                         <td id="caption-confidence-{{ i }}">{{ content.dense_captions[i].get('confidence') }}</td>
@@ -47,7 +47,7 @@
                             <label for="relevant-tag-{{ i }}">Accept</label>
                             <input type="checkbox" id="relevant-tag-{{ i }}"
                                    value="{{ content.tags[i].get('name') }}" class="btn btn-primary"
-                                   onclick="setTag({{ i }})">
+                                   onclick="setTag({{ i }})" checked>
                         </td>
                         <td id="tag-text-{{ i }}">{{ content.tags[i].get('name') }}</td>
                         <td id="tag-confidence-{{ i }}">{{ content.tags[i].get('confidence') }}</td>
@@ -188,7 +188,6 @@
                 },
                 success: function (data) {
                     window.location.href = data.redirect;
-
                 }
             });
         }

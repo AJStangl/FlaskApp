@@ -26,7 +26,7 @@ def secondary():
 def secondary_image(name, subreddit):
 	try:
 		record = secondary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
-		image_link = secondary.get_image_url(record_id=record.get('id'), subreddit=record.get('subreddit'))
+		image_link = secondary_curation_service.get_image_url(record_id=record.get('id'), subreddit=record.get('subreddit'))
 		dense_captions: list[dict] = secondary_curation_service.get_dense_captions(name)
 		relevant_tags: list[dict] = secondary_curation_service.get_relevant_tags(name)
 

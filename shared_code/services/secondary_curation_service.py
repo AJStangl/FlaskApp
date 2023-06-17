@@ -105,8 +105,8 @@ class SecondaryCurationService(BaseService):
 		try:
 			is_curated = 'thumbnail_curated eq false'
 			is_accepted = 'thumbnail_accept eq false'
-			is_sexy = "subreddit' in ('selfies', 'Amicute', 'amihot', 'AmIhotAF', 'HotGirlNextDoor', 'sfwpetite', 'cougars_and_milfs_sfw', 'SFWRedheads', 'SFWNextDoorGirls', 'SunDressesGoneWild', 'ShinyDresses', 'SlitDresses', 'CollaredDresses', 'DressesPorn', 'WomenInLongDresses', 'Dresses', 'realasians', 'KoreanHotties', 'prettyasiangirls', 'AsianOfficeLady', 'AsianInvasion', 'AesPleasingAsianGirls', 'sexygirls', 'PrettyGirls', 'gentlemanboners' 'hotofficegirls', 'tightdresses', 'DLAH', 'TrueFMK')"
-			query = f"{is_curated} and {is_accepted} and {is_sexy}"
+			# is_sexy = "subreddit eq 'selfies' or subreddit eq 'Amicute' or subreddit eq 'amihot' or subreddit eq 'AmIhotAF' or subreddit eq 'HotGirlNextDoor' or subreddit eq 'sfwpetite' or subreddit eq 'cougars_and_milfs_sfw' or subreddit eq 'SFWRedheads' or subreddit eq 'SFWNextDoorGirls' or subreddit eq 'SunDressesGoneWild' or subreddit eq 'ShinyDresses' or subreddit eq 'SlitDresses' or subreddit eq 'CollaredDresses' or subreddit eq 'DressesPorn' or subreddit eq 'WomenInLongDresses' or subreddit eq 'Dresses' or subreddit eq 'realasians' or subreddit eq 'KoreanHotties' or subreddit eq 'prettyasiangirls' or subreddit eq 'AsianOfficeLady' or subreddit eq 'AsianInvasion' or subreddit eq 'AesPleasingAsianGirls' or subreddit eq 'sexygirls' or subreddit eq 'PrettyGirls' or subreddit eq 'gentlemanboners' or subreddit eq 'hotofficegirls' or subreddit eq 'tightdresses' or subreddit eq 'DLAH' or subreddit eq 'TrueFMK'"
+			query = f"{is_curated} and {is_accepted}"
 			entity = client.query_entities(query)
 			return next(entity)
 		finally:
@@ -114,10 +114,11 @@ class SecondaryCurationService(BaseService):
 
 	def get_dense_captions(self, name):
 		captions_table = TableAdapter().get_table_client('denseCaptions')
-		dense_captions = list(captions_table.query_entities('PartitionKey eq ' + name))
+		dense_captions = list(captions_table.query_entities(f"PartitionKey eq '{name}'"))
 		return dense_captions
 
 	def get_relevant_tags(self, name):
 		relevant_tags = TableAdapter().get_table_client('relevantTags')
-		tags = list(relevant_tags.query_entities('PartitionKey eq ' + name))
+		tags = list(relevant_tags.query_entities(f"PartitionKey eq '{name}'"))
+
 		return tags
