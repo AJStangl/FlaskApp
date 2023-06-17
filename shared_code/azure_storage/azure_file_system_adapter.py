@@ -4,7 +4,7 @@ import os
 class AzureFileStorageAdapter(object):
 	def __init__(self, container_name: str):
 		self._account_name: str = os.environ["AZURE_ACCOUNT_NAME"]
-		self._account_key: str = os.environ["AZURE_TABLE_ENDPOINT"]
+		self._account_key: str = os.environ["AZURE_ACCOUNT_KEY"]
 		self.container_name: str = container_name
 
 	def get_file_storage(self) -> AzureBlobFileSystem:

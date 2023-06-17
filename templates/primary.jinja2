@@ -68,12 +68,11 @@
                 data: {
                     "id": "{{ content.id }}",
                     "caption": $("#caption").val(),
-                    "action": status
+                    "action": status,
+                    "subreddit": "{{ content.subreddit }}"
                 },
                 success: function (data) {
-                    console.log(data);
-                    window.location.href = `/primary/image/${data.name}`;
-                    return;
+                    window.location.href = data.redirect;
                 }
             });
         }

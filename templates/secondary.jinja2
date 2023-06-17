@@ -184,11 +184,11 @@
                     "action": status,
                     "additional_captions": captions.join(','),
                     "additional_tags": tags.join(','),
+                    "subreddit": "{{ content.subreddit }}"
                 },
                 success: function (data) {
-                    console.log(data);
-                    window.location.href = `/secondary/image/${data.name}`;
-                    return;
+                    window.location.href = data.redirect;
+
                 }
             });
         }
