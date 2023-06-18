@@ -53,8 +53,12 @@
         function sendRequest(status) {
             var button = document.getElementById("accept");
             button.disabled = true;
-            var button = document.getElementById("reject");
-            button.disabled = true;
+            button.hidden = true;
+
+            button2 = document.getElementById("reject");
+            button2.disabled = true;
+            button2.hidden = true;
+
             $.ajax({
                 url: "/primary/curate/",
                 type: "POST",
