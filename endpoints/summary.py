@@ -2,8 +2,6 @@ import json
 
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 
-from shared_code.services.primary_curation_service import PrimaryCurationService
-from shared_code.services.secondary_curation_service import SecondaryCurationService
 from shared_code.azure_storage.tables import TableAdapter
 
 table_adapter: TableAdapter = TableAdapter()
@@ -13,7 +11,8 @@ summary_bp = Blueprint('summary', __name__)
 @summary_bp.route('/summary/')
 def summary():
 	try:
-		return render_template('summary.jinja2', content=None)
+		tables = list(table_adapter.service.list_tables())
+		return render_template('summary.jinja2', options=[item.name for item in tables])
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
@@ -21,8 +20,11 @@ def summary():
 @summary_bp.route('/summary/data', methods=['POST'])
 def data():
 	query = request.form['query']
-	curation_table = table_adapter.get_table_client("curationPrimary")
-	entities = list(curation_table.query_entities(query))
+	table = request.form['table']
+	limit = request.form['limit']
+	curation_table = table_adapter.get_table_client(table)
+	entities = list(curation_table.query_entities(query, results_per_page=int(limit)))
+	entities = entities[0:int(limit)]
 	headers = []
 	values = []
 	for entity in entities:

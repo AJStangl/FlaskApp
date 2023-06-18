@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 
-from shared_code.scripts.azure_queue import MessageBroker
-from shared_code.services.azure_caption_process import AzureCaption
+from shared_code.services.azure_queue import MessageBroker
+from shared_code.services.primary_curation_service import PrimaryCurationService
 from shared_code.services.secondary_curation_service import SecondaryCurationService
 
 secondary_bp = Blueprint('secondary', __name__)
@@ -9,6 +9,7 @@ secondary_bp = Blueprint('secondary', __name__)
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curationSecondary")
 
 message_broker = MessageBroker()
+
 
 @secondary_bp.route('/secondary/')
 def secondary():
@@ -72,12 +73,22 @@ def secondary_curate():
 		return redirect(url_for('secondary.secondary'))
 
 
-@secondary_bp.route('/secondary/analysis/<name>/<subreddit>', methods=['GET'])
-def secondary_adjust(name, subreddit):
-	message = {
-		"image_id": name,
-		"subreddit": subreddit,
-		"action": "accept",
-		"caption": "",
-	}
-	message_broker.send_message(message)
+@secondary_bp.route('/secondary/analysis/', methods=['POST'])
+def secondary_analysis():
+	try:
+		name = request.form["image_id"]
+		subreddit = request.form['subreddit']
+		primary_curation_service: PrimaryCurationService = PrimaryCurationService("curationPrimary")
+		record = primary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
+
+		caption = record.get('caption')
+		message: dict = {
+			"image_id": name,
+			"subreddit": subreddit,
+			"action": "accept",
+			"caption": caption,
+		}
+		message_broker.send_message(message)
+		return jsonify({"success": True, "error": None, "redirect": url_for('secondary.secondary')})
+	except Exception as e:
+		return jsonify({"success": False, "error": e, "redirect": url_for('secondary.secondary')})

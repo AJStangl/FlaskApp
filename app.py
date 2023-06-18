@@ -4,7 +4,7 @@ from endpoints.index import index_bp
 from endpoints.primary import primary_bp
 from endpoints.secondary import secondary_bp
 from endpoints.summary import summary_bp
-from shared_code.scripts.azure_queue import MessageBroker
+from shared_code.services.azure_queue import MessageBroker
 
 app = Flask(__name__)
 

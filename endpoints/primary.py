@@ -1,8 +1,6 @@
-import json
-
 from flask import Blueprint, render_template, redirect, url_for, request
 
-from shared_code.scripts.azure_queue import MessageBroker
+from shared_code.services.azure_queue import MessageBroker
 from shared_code.services.azure_caption_process import AzureCaption
 from shared_code.services.primary_curation_service import PrimaryCurationService
 from shared_code.services.secondary_curation_service import SecondaryCurationService
@@ -55,10 +53,12 @@ def curate():
 				"action": action,
 				"caption": caption
 			}
-			message_broker.send_message(json.dumps(message))
+			primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption, additional_captions=[], relevant_tags=[])
+			message_broker.send_message(message)
 			resp = {"redirect": url_for('primary.primary')}
 			return resp
 		else:
+			primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption, additional_captions=[], relevant_tags=[])
 			resp = {"redirect": url_for('primary.primary')}
 			return resp
 	except Exception as e:

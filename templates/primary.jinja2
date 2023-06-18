@@ -3,8 +3,8 @@
 {% block content %}
     <div class="container">
         <div><p>number of images remaining: {{ num_remaining }}</p></div>
-        <div class="image-container">
-            <div class="image-wrapper" onclick="toggleFullScreen(this)">
+        <div id="image-container" class="image-container">
+            <div class="image-wrapper" onclick="toggleFullScreen(this)" style="width: auto; height: auto;">
                 <img src={{ link }}>
                 <div class="image-label">Original Image</div>
             </div>
@@ -20,7 +20,8 @@
         </div>
         <div class="mb-3">
             <label for="id" class="form-label">Id</label>
-            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly>
+            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly
+                   onclick="copyText()">
         </div>
         <div class="mb-3">
             <label for="title" class="form-label">Title</label>
@@ -41,6 +42,13 @@
     </div>
 
     <script>
+        function copyText() {
+            navigator.clipboard.readText().then((clipText) => {
+                var target_value = document.querySelector("#id").placeholder
+                navigator.clipboard.writeText(target_value);
+            });
+        }
+
         function accept() {
             sendRequest("accept")
             document.getElementsByClassName("loading-container")[0].hidden = false;
@@ -55,9 +63,12 @@
             button.disabled = true;
             button.hidden = true;
 
-            button2 = document.getElementById("reject");
+            var button2 = document.getElementById("reject");
             button2.disabled = true;
             button2.hidden = true;
+
+            var image_container = document.getElementById("image-container");
+            image_container.hidden = true;
 
             $.ajax({
                 url: "/primary/curate/",

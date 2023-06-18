@@ -22,6 +22,7 @@
         <div class="mb-3">
             <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
             <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
+            <button id=skip class="btn btn-secondary" onclick="sendForAnalysis()">Send For Analysis</button>
         </div>
         <div class="mb3">
             <table border="1" width="100%" class="table-striped">
@@ -88,6 +89,24 @@
     </div>
 
     <script>
+        function sendForAnalysis() {
+            $.ajax({
+                url: "/secondary/analysis/",
+                type: "POST",
+                header: {
+                    "content-type": "application/json"
+                },
+                data: {
+                    "image_id": "{{ content.id }}",
+                    "subreddit": "{{ content.subreddit }}",
+                    "action": "accept",
+                },
+                success: function (data) {
+                    window.location.href = data.redirect;
+                }
+            });
+        }
+
         function setTag(i) {
             var id = $('#relevant-tag-' + i).attr('id');
             var thing = document.getElementById(id);
