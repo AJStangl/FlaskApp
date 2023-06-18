@@ -48,6 +48,7 @@ def curate():
 			primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption, additional_captions=[], relevant_tags=[])
 			record = primary_curation_service.get_record_by_id(record_id=image_id, subreddit=subreddit)
 			secondary_curation_service.add_new_entry(record)
+			azure_caption.run_analysis(image_id=image_id)
 			resp = {"redirect": url_for('primary.primary')}
 			return resp
 		else:

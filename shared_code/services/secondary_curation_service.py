@@ -1,13 +1,20 @@
 import json
 
+from adlfs import AzureBlobFileSystem
+
 from shared_code.azure_storage.tables import TableAdapter
 from shared_code.services.base_curation_service import BaseService
+from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
+
+
+
 
 
 class SecondaryCurationService(BaseService):
 	def __init__(self, table_name: str):
 		super().__init__(table_name)
 		self._table_adapter = TableAdapter()
+		self._file_system: AzureBlobFileSystem = AzureFileStorageAdapter("data").get_file_storage()
 
 	def get_table_client(self):
 		return self._table_adapter.get_table_client(self.table_name)
@@ -56,7 +63,10 @@ class SecondaryCurationService(BaseService):
 		client = self.get_table_client()
 		try:
 			entity = client.get_entity(partition_key=subreddit, row_key=record_id)
-			return 'https://ajdevreddit.blob.core.windows.net/' + entity['thumbnail_path']
+			thumbnail_path = self._file_system.url(entity['thumbnail_path'])
+			original_path = self._file_system.url(entity['path'])
+			alternate_path = self._file_system.url(entity['azure_thumbnail_path'])
+			return thumbnail_path, original_path, alternate_path
 		finally:
 			client.close()
 

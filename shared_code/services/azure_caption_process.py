@@ -18,7 +18,7 @@ class AzureCaption(object):
 		self.__subscription_key: str = os.environ["AZURE_VISION_API_KEY"]
 		self.__endpoint: str = os.environ["AZURE_VISION_ENDPOINT"]
 
-	def run_image_process(self, image_id: str):
+	def run_image_process(self, image_id: str) -> str:
 		fs = AzureFileStorageAdapter("data").get_file_storage()
 		try:
 			out_path = f"data/caption/{image_id}.json"

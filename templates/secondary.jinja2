@@ -3,15 +3,25 @@
 {% block content %}
     <div class="container">
         <div><p>number of images remaining: {{ num_remaining }}</p></div>
-        <div id="image-viewer">
-            <img class="modal-content" id="full-image" alt="Image-To-Curate" src={{ link }}>
+        <div class="image-container">
+            <div class="image-wrapper"  onclick="toggleFullScreen(this)">
+                <img src={{ original_link }}>
+                <div class="image-label">Original Image</div>
+            </div>
+            <div class="image-wrapper"  onclick="toggleFullScreen(this)">
+                <img src={{ link }}>
+                <div class="image-label">Smart Crop</div>
+            </div>
+            <div class="image-wrapper"  onclick="toggleFullScreen(this)">
+                    <img src={{ alt_link }}>
+                    <div class="image-label">Azure Crop</div>
+                </div>
         </div>
     </div>
     <div class="container">
         <div class="mb-3">
             <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
             <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
-            <button id="analysis" class="btn btn-success" onclick="sendForAnalysis()">Send For Analysis</button>
         </div>
         <div class="mb3">
             <table border="1" width="100%" class="table-striped">
@@ -78,6 +88,34 @@
     </div>
 
     <script>
+        function toggleFullScreen(element) {
+      if (
+        !document.fullscreenElement &&
+        !document.mozFullScreenElement &&
+        !document.webkitFullscreenElement &&
+        !document.msFullscreenElement
+      ) {
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    }
         function setTag(i) {
             var id = $('#relevant-tag-' + i).attr('id');
             var thing = document.getElementById(id);
@@ -92,7 +130,6 @@
                 $('#relevant-tag-' + i).val("");
             }
         }
-
 
         function setCaptions(i) {
             var id = $('#additional-caption-' + i).attr('id');
@@ -128,24 +165,6 @@
             sendRequest("accept")
         }
 
-        function sendForAnalysis() {
-            $.ajax({
-                url: "/secondary/analysis/",
-                type: "POST",
-                header: {
-                    "content-type": "application/json"
-                },
-                data: {
-                    "id": "{{ content.id }}"
-                },
-                success: function (data) {
-                    console.log(data);
-                    alert(JSON.stringify(data));
-                    return;
-                }
-            });
-        }
-
         function reject() {
             sendRequest("reject");
         }
@@ -153,7 +172,7 @@
         function sendRequest(status) {
             var captions = [];
             var tags = [];
-             {% for i in range(content.dense_captions | length) %}
+            {% for i in range(content.dense_captions | length) %}
                 var id = $('#additional-caption-{{ i }}').attr('id');
                 var thing = document.getElementById(id);
                 var checked = thing.checked;
@@ -192,4 +211,32 @@
             });
         }
     </script>
+    <style>
+        .image-container {
+            display: flex;
+        }
+
+        .image-container .image-wrapper {
+            position: relative;
+            width: 50%; /* Adjust this value as needed */
+            height: auto;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+        }
+
+        .image-container .image-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
 {% endblock %}

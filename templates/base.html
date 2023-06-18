@@ -17,13 +17,13 @@
         <div class="container">
             <h1>Image Curation Application</h1>
         </div>
-        <div>
+        <div class="form">
             <form action="{{ url_for('index.select_endpoint') }}" method="GET">
-                <select name="endpoint" class="form-select" aria-label="Select Endpoint">
-                    <option value="primary">Primary Curation</option>
-                    <option value="secondary">Secondary Curation</option>
+                <select name="endpoint" class="form-select" aria-label="Select Endpoint" onchange="submit()">
+                    <option class="form-control" selected>Select Endpoint</option>
+                    <option  class="form-control" value="primary">Primary Curation</option>
+                    <option  class="form-control" value="secondary">Secondary Curation</option>
                 </select>
-                <button type="submit" class="btn btn-primary">Go</button>
             </form>
         </div>
     </div>
