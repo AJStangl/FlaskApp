@@ -14,11 +14,18 @@ class TableAdapter(object):
 	credential = AzureNamedKeyCredential(os.environ["AZURE_ACCOUNT_NAME"], os.environ["AZURE_ACCOUNT_KEY"])
 
 	def __init__(self):
-		self.service: TableServiceClient = TableServiceClient(endpoint=os.environ["AZURE_TABLE_ENDPOINT"],
-															  credential=self.credential)
+		self.service: TableServiceClient = TableServiceClient(endpoint=os.environ["AZURE_TABLE_ENDPOINT"], credential=self.credential)
+		self.tables = self.service.list_tables()
+
 
 	def get_table_service_client(self) -> TableServiceClient:
 		return self.service
+
+	def perform_odata_query(self, table_name: str, query: str) -> list[dict]:
+		table_client: TableClient = self.get_table_client(table_name=table_name)
+		entities: ItemPaged[TableEntity] = table_client.query_entities(query)
+		return list(entities)
+
 
 	def get_table_client(self, table_name: str) -> TableClient:
 		service: TableServiceClient = self.get_table_service_client()

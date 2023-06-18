@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container">
+        <h1>Table Example</h1>
+        <div class="form-group">
+            <input type="text" class="form-control" id="query-input" placeholder="Enter a query">
+        </div>
+        <button class="btn btn-primary" id="search-button">Search</button>
+
+        <table class="table mt-4">
+            <thead>
+            <tr>
+                {% for header in headers %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody id="table-data">
+            {% for row in data %}
+                <tr>
+                    {% for value in row %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div id="loading-spinner" class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            function showLoadingSpinner() {
+                $('#loading-spinner').show();
+            }
+
+            function hideLoadingSpinner() {
+                $('#loading-spinner').hide();
+            }
+
+            function populateTable(data) {
+                var table = $('#table-data');
+                table.empty();
+
+                $.each(data.headers, function(index, header) {
+                    table.append($('<th></th>').text(header));
+                });
+
+                $.each(data.data, function(index, row) {
+                    var tableRow = $('<tr></tr>');
+                    $.each(row, function(i, value) {
+                        tableRow.append($('<td></td>').text(value));
+                    });
+                    table.append(tableRow);
+                });
+            }
+
+            $('#search-button').click(function() {
+                var query = $('#query-input').val();
+                showLoadingSpinner();
+
+                $.ajax({
+                    url: '/summary/data',
+                    type: 'POST',
+                    data: { query: query },
+                    dataType: 'json',
+                    success: function(response) {
+                        hideLoadingSpinner();
+                        populateTable(response);
+                    },
+                    error: function() {
+                        hideLoadingSpinner();
+                        console.log('Error retrieving data.');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

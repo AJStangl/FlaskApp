@@ -15,4 +15,6 @@ def select_endpoint():
 		return redirect(url_for('primary.primary'))
 	elif endpoint == 'secondary':
 		return redirect(url_for('secondary.secondary'))
+	elif endpoint == 'summary':
+		return redirect(url_for('summary.summary'))
 	return redirect('/')
