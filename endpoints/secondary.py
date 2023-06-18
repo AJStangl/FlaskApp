@@ -72,6 +72,12 @@ def secondary_curate():
 		return redirect(url_for('secondary.secondary'))
 
 
-# @secondary_bp.route('/secondary/analysis/<name>/<subreddit>', methods=['GET'])
-# def secondary_adjust(name, subreddit):
-# 	pass
+@secondary_bp.route('/secondary/analysis/<name>/<subreddit>', methods=['GET'])
+def secondary_adjust(name, subreddit):
+	message = {
+		"image_id": name,
+		"subreddit": subreddit,
+		"action": "accept",
+		"caption": "",
+	}
+	message_broker.send_message(message)

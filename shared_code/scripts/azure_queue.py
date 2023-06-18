@@ -48,8 +48,7 @@ class MessageBroker(threading.Thread):
 		subreddit = data.get("subreddit")
 		action = data.get("action")
 		caption = data.get("caption")
-		primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption,
-											   additional_captions=[], relevant_tags=[])
+		primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption, additional_captions=[], relevant_tags=[])
 		azure_caption.run_image_process(image_id)
 		record = primary_curation_service.get_record_by_id(record_id=image_id, subreddit=subreddit)
 		secondary_curation_service.add_new_entry(record)
