@@ -63,9 +63,18 @@ class SecondaryCurationService(BaseService):
 		client = self.get_table_client()
 		try:
 			entity = client.get_entity(partition_key=subreddit, row_key=record_id)
-			thumbnail_path = self._file_system.url(entity['thumbnail_path'])
-			original_path = self._file_system.url(entity['path'])
-			alternate_path = self._file_system.url(entity['azure_thumbnail_path'])
+			try:
+				thumbnail_path = self._file_system.url(entity['thumbnail_path'])
+			except:
+				thumbnail_path = "/data/nope/"
+			try:
+				original_path = self._file_system.url(entity['path'])
+			except:
+				original_path = "/data/nope/"
+			try:
+				alternate_path = self._file_system.url(entity['azure_thumbnail_path'])
+			except:
+				alternate_path = "/data/nope/"
 			return thumbnail_path, original_path, alternate_path
 		finally:
 			client.close()

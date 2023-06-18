@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 
+from shared_code.scripts.azure_queue import MessageBroker
 from shared_code.services.azure_caption_process import AzureCaption
 from shared_code.services.secondary_curation_service import SecondaryCurationService
 
@@ -7,6 +8,7 @@ secondary_bp = Blueprint('secondary', __name__)
 
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curationSecondary")
 
+message_broker = MessageBroker()
 
 @secondary_bp.route('/secondary/')
 def secondary():
@@ -27,7 +29,9 @@ def secondary():
 def secondary_image(name, subreddit):
 	try:
 		record = secondary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
-		image_link, original_link, alt_link = secondary_curation_service.get_image_url(record_id=record.get('id'), subreddit=record.get('subreddit'))
+		record_id = record.get('id')
+		subreddit = record.get('subreddit')
+		image_link, original_link, alt_link = secondary_curation_service.get_image_url(record_id=record_id, subreddit=subreddit)
 		dense_captions: list[dict] = secondary_curation_service.get_dense_captions(name)
 		relevant_tags: list[dict] = secondary_curation_service.get_relevant_tags(name)
 
@@ -66,3 +70,8 @@ def secondary_curate():
 	except Exception as e:
 		print(e)
 		return redirect(url_for('secondary.secondary'))
+
+
+# @secondary_bp.route('/secondary/analysis/<name>/<subreddit>', methods=['GET'])
+# def secondary_adjust(name, subreddit):
+# 	pass
