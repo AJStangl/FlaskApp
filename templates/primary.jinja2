@@ -10,6 +10,9 @@
             </div>
         </div>
     </div>
+    <div class="loading-container" hidden>
+        <div class="loading-icon"></div>
+    </div>
     <div class="container">
         <div class="mb-3">
             <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
@@ -38,23 +41,9 @@
     </div>
 
     <script>
-        function showImage() {
-            $(".images img").click(function () {
-                $("#full-image").attr("src", $(this).attr("src"));
-                $('#image-viewer').show();
-                return;
-            });
-        }
-
-        function closeImage() {
-            $("#image-viewer .close").click(function () {
-                $('#image-viewer').hide();
-                return;
-            });
-        }
-
         function accept() {
             sendRequest("accept")
+            document.getElementsByClassName("loading-container")[0].hidden = false;
         }
 
         function reject() {
@@ -62,6 +51,10 @@
         }
 
         function sendRequest(status) {
+            var button = document.getElementById("accept");
+            button.disabled = true;
+            var button = document.getElementById("reject");
+            button.disabled = true;
             $.ajax({
                 url: "/primary/curate/",
                 type: "POST",
@@ -79,5 +72,32 @@
                 }
             });
         }
+
     </script>
+    <style>
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .loading-icon {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 {% endblock %}
