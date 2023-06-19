@@ -31,10 +31,14 @@ class MessageBroker(threading.Thread):
 		dlq = self.service.get_queue_client(self.dlq_name)
 		dlq.message_encode_policy = BinaryBase64EncodePolicy()
 		dlq.message_decode_policy = BinaryBase64DecodePolicy()
+
+		# noinspection PyBroadException
 		try:
 			queue.create_queue()
+
 		except Exception:
 			pass
+		# noinspection PyBroadException
 		try:
 			dlq.create_queue()
 		except Exception:
@@ -43,11 +47,17 @@ class MessageBroker(threading.Thread):
 
 	def send_message(self, message: str, queue_name: str = "curation-message-queue"):
 		client = self.service.get_queue_client(queue_name)
-		client.message_encode_policy = BinaryBase64EncodePolicy()
-		client.message_decode_policy = BinaryBase64DecodePolicy()
-		dumped = json.dumps(message).encode('utf-8')
-		client.send_message(client.message_encode_policy.encode(content=dumped))
-		client.close()
+		try:
+			client.message_encode_policy = BinaryBase64EncodePolicy()
+			client.message_decode_policy = BinaryBase64DecodePolicy()
+			dumped = json.dumps(message).encode('utf-8')
+			client.send_message(client.message_encode_policy.encode(content=dumped))
+		except Exception as e:
+			print(f"Error: {str(e)}")
+			return
+		finally:
+			client.close()
+
 
 	def run_caption_procedure(self, data: dict) -> None:
 		image_id = data.get("image_id")

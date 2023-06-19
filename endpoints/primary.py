@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 
-from shared_code.services.azure_queue import MessageBroker
+from shared_code.background.message_broker import MessageBroker
 from shared_code.services.azure_caption_process import AzureCaption
 from shared_code.services.primary_curation_service import PrimaryCurationService
 from shared_code.services.secondary_curation_service import SecondaryCurationService
@@ -8,8 +8,7 @@ from shared_code.services.secondary_curation_service import SecondaryCurationSer
 primary_curation_service: PrimaryCurationService = PrimaryCurationService("curationPrimary")
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curationSecondary")
 azure_caption: AzureCaption = AzureCaption()
-
-message_broker = MessageBroker()
+message_broker: MessageBroker = MessageBroker()
 
 primary_bp = Blueprint('primary', __name__)
 
@@ -18,15 +17,17 @@ primary_bp = Blueprint('primary', __name__)
 def primary():
 	try:
 		record = primary_curation_service.get_next_record()
+
 		if record is None:
 			return render_template('error.jinja2', error="No more records to process")
-
-		name = record['id']
-		subreddit = record['subreddit']
-		return redirect(url_for('primary.primary_image', name=name, subreddit=subreddit))
-
+		else:
+			name = record['id']
+			subreddit = record['subreddit']
+			return redirect(url_for('primary.primary_image', name=name, subreddit=subreddit))
+	except StopIteration:
+		return render_template('error.jinja2', error="No more records to process")
 	except Exception as e:
-		return render_template('error.jinja2', error=e)
+		return render_template('error.jinja2', error=f"An unknown error has occurred: {e}")
 
 
 @primary_bp.route('/primary/image/<name>/<subreddit>', methods=['GET'])
@@ -53,12 +54,12 @@ def curate():
 				"action": action,
 				"caption": caption
 			}
-			primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption, additional_captions=[], relevant_tags=[])
+			primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption)
 			message_broker.send_message(message)
 			resp = {"redirect": url_for('primary.primary')}
 			return resp
 		else:
-			primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption, additional_captions=[], relevant_tags=[])
+			primary_curation_service.update_record(image_id, subreddit=subreddit, action=action, caption=caption)
 			resp = {"redirect": url_for('primary.primary')}
 			return resp
 	except Exception as e:

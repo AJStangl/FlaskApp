@@ -26,7 +26,7 @@ class PrimaryCurationService(BaseService):
 		finally:
 			client.close()
 
-	def update_record(self, record_id: str, subreddit: str, action: str, caption: str, additional_captions: list[str], relevant_tags: list[str]) -> None:
+	def update_record(self, record_id: str, subreddit: str, action: str, caption: str) -> None:
 		client = self.get_table_client()
 		try:
 			if action == "accept":

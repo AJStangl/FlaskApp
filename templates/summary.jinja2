@@ -3,15 +3,18 @@
     <div class="container">
         <h1>Summary Table</h1>
         <div class="form-group">
+            <label for="dropdown">Select a table</label>
             <select class="form-control" id="dropdown">
                 {% for option in options %}
                     <option value="{{ option }}">{{ option }}</option>
                 {% endfor %}
             </select>
             <div class="form-group">
+                <label for="query-input">Query</label>
                 <input type="text" class="form-control" id="query-input" placeholder="Enter a query">
             </div>
             <div class="form-group">
+                <label for="limit">Query</label>
                 <input type="text" class="form-control" id="limit" placeholder="Max Number Of Records To Return"
                        value=100>
             </div>
@@ -40,68 +43,40 @@
             </div>
         </div>
     </div>
-    <style>
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .loading-icon {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
+    </div>
     <script>
         $(document).ready(function () {
-             $('#search-button').click(function () {
-                    var button = document.getElementById("search-button");
-                    button.setAttribute("disabled", '');
-                    var table = document.getElementById("table-data");
-                    table.setAttribute("hidden", '');
-                    var loading_spinner = document.getElementById("loading-spinner");
-                    loading_spinner.removeAttribute("hidden");
+            $('#search-button').click(function () {
+                const button = document.getElementById("search-button");
+                button.setAttribute("disabled", '');
+                const table = document.getElementById("table-data");
+                table.setAttribute("hidden", '');
+                const loading_spinner = document.getElementById("loading-spinner");
+                loading_spinner.removeAttribute("hidden");
 
-                    var query = $('#query-input').val();
+                const query = $('#query-input').val();
 
-                    $.ajax({
-                        url: '/summary/data',
-                        type: 'POST',
-                        data: {
-                            table: $('#dropdown').val(),
-                            query: query,
-                            limit: $('#limit').val()
-                        },
-                        dataType: 'json',
-                        success: function (response) {
-                            populateTable(response);
-                            loading_spinner.setAttribute("hidden", '');
-                            table.removeAttribute("hidden");
-                            button.removeAttribute("disabled");
-                        },
-                        error: function (e) {
-                            alert(JSON.parse(e.responseText));
-                        }
-                    });
+                $.ajax({
+                    url: '/summary/data',
+                    type: 'POST',
+                    data: {
+                        table: $('#dropdown').val(),
+                        query: query,
+                        limit: $('#limit').val()
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        populateTable(response);
+                        loading_spinner.setAttribute("hidden", '');
+                        table.removeAttribute("hidden");
+                        button.removeAttribute("disabled");
+                    }
                 });
+            });
 
 
             function populateTable(data) {
-                var table = $('#table-data');
+                const table = $('#table-data');
                 table.empty();
 
                 $.each(data.headers, function (index, header) {
@@ -109,7 +84,7 @@
                 });
 
                 $.each(data.data, function (index, row) {
-                    var tableRow = $('<tr></tr>');
+                    const tableRow = $('<tr></tr>');
                     $.each(row, function (i, value) {
                         tableRow.append($('<td></td>').text(value));
                     });

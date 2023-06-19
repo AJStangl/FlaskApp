@@ -2,95 +2,277 @@
 
 {% block content %}
     <div class="container">
-        <div><p>number of images remaining: {{ num_remaining }}</p></div>
-        <div class="image-container">
-            <div class="image-wrapper" onclick="toggleFullScreen(this)">
-                <img src={{ original_link }}>
-                <div class="image-label">Original Image</div>
+        <div class="container-fluid">
+            <div><p>number of images remaining: {{ num_remaining }}</p></div>
+        </div>
+        <div class="container-fluid">
+            <div class="mb-3">
+                <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
+                <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
+                <button id=skip class="btn btn-secondary" onclick="sendForAnalysis()">Send For Analysis</button>
             </div>
         </div>
-        <div class="image-container">
-            <div class="image-wrapper" onclick="toggleFullScreen(this)">
-                <img src={{ link }}>
-                <div class="image-label">Smart Crop</div>
+        <div class="image-grid">
+            <div class="container-fluid">
+                {#  Smart Crop Thumbnail  #}
+                <div class="image-container">
+                    <div class="image-wrapper" id="smart-wrapper">
+                        <img src="{{ thumbnail_path }}" alt="Smart Crop"
+                             onclick="openModal('{{ thumbnail_path }}', '{{ 'smart' }}')">
+                        <div class="image-label">Primary Thumbnail</div>
+                    </div>
+                    <input id="smart" value=false onchange="validateInput('smart')" onload="validateInput('smart')"
+                           hidden>
+                </div>
+                <div class="mb-3">
+                    <label for="smart-caption" class="form-label">Blip Caption</label>
+                    <textarea class="form-control" id="smart-caption" rows="3"
+                              onclick="copytext()">{{ thumbnail_caption }}</textarea>
+                </div>
+                {#  Azure Thumbnail      #}
+                <div class="image-container">
+                    <div class="image-wrapper" id="azure-wrapper">
+                        <img src="{{ azure_thumbnail }}" alt="Azure Crop"
+                             onclick="openModal('{{ azure_thumbnail }}', '{{ 'azure' }}')">
+                        <div class="image-label">Azure Crop</div>
+                    </div>
+                    <input id="azure" value=false onchange="validateInput('azure')" onload="validateInput('azure')"
+                           hidden>
+                </div>
+                <div class="mb-3">
+                    <label for="azure-caption" class="form-label">Azure Caption</label>
+                    <textarea class="form-control" id="azure-caption" rows="3"
+                              onclick="copytext()">{{ azure_caption }}</textarea>
+                </div>
+                {#  Pil Thumbnail       #}
+                <div class="image-container">
+                    <div class="image-wrapper" id="pil-wrapper">
+                        <img src="{{ pil_thumbnail }}" alt="PIL Thumbnail"
+                             onclick="openModal('{{ pil_thumbnail }}', '{{ 'pil' }}')">
+                        <div class="image-label">PIL Thumbnail</div>
+                    </div>
+                    <input id="pil" value=false onchange="validateInput('pil')" onload="validateInput('pil')" hidden>
+                </div>
+                <div class="mb-3">
+                    <label for="reddit-caption" class="form-label">Reddit Caption</label>
+                    <textarea class="form-control" id="reddit-caption" rows="3"
+                              onclick="copytext()">{{ reddit_caption }}</textarea>
+                </div>
             </div>
-            <div class="image-wrapper" onclick="toggleFullScreen(this)">
-                <img src={{ alt_link }}>
-                <div class="image-label">Azure Crop</div>
+            <div class="container-fluid">
+                <div class="mb-3">
+                    <label for="best-caption" class="form-label">Best Caption</label>
+                    <input type="text" class="form-control" id="best-caption" placeholder="">
+                </div>
             </div>
         </div>
+        <div id="modal" class="modal" onclick="closeModal()">
+            <div id="modal-content" class="modal-content"></div>
+        </div>
+        <div class="container-fluid">
+            <div class="mb-3">
+                <label for="id" class="form-label">Id</label>
+                <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="subreddit" class="form-label">Subreddit</label>
+                <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="model" class="form-label">Model</label>
+                <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="mb3">
+                <table class="table-striped" style="width:100%">
+                    <tr>
+                        <th>Accept</th>
+                        <th>Text</th>
+                        <th>Confidence</th>
+                    </tr>
+                    {% for i in range(content.dense_captions | length) %}
+                        <tr id={{ i }}>
+                            <td id="check-box-{{ i }}">
+                                <label for="additional-caption-{{ i }}">Accept</label>
+                                <input type="checkbox" id="additional-caption-{{ i }}"
+                                       value="{{ content.dense_captions[i].get('text') }}" class="btn btn-primary"
+                                       onclick="setCaptions({{ i }})" checked>
+                            </td>
+                            <td id="caption-text-{{ i }}">{{ content.dense_captions[i].get('text') }}</td>
+                            <td id="caption-confidence-{{ i }}">{{ content.dense_captions[i].get('confidence') }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="mb3">
+                <table class="table-striped" style="width: 100%;">
+                    <tr>
+                        <th>Accept</th>
+                        <th>Name</th>
+                        <th>Confidence</th>
+                    </tr>
+                    {% for i in range(content.tags | length) %}
+                        <tr id={{ i }}>
+                            <td id="check-box-{{ i }}">
+                                <label for="relevant-tag-{{ i }}">Accept</label>
+                                <input type="checkbox" id="relevant-tag-{{ i }}"
+                                       value="{{ content.tags[i].get('name') }}" class="btn btn-primary"
+                                       onclick="setTag({{ i }})" checked>
+                            </td>
+                            <td id="tag-text-{{ i }}">{{ content.tags[i].get('name') }}</td>
+                            <td id="tag-confidence-{{ i }}">{{ content.tags[i].get('confidence') }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
         </div>
     </div>
-    <div class="container">
-        <div class="mb-3">
-            <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
-            <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
-            <button id=skip class="btn btn-secondary" onclick="sendForAnalysis()">Send For Analysis</button>
-        </div>
-        <div class="mb3">
-            <table border="1" width="100%" class="table-striped">
-                <tr>
-                    <th>Accept</th>
-                    <th>Text</th>
-                    <th>Confidence</th>
-                </tr>
-                {% for i in range(content.dense_captions | length) %}
-                    <tr id={{ i }}>
-                        <td id="check-box-{{ i }}">
-                            <label for="additional-caption-{{ i }}">Accept</label>
-                            <input type="checkbox" id="additional-caption-{{ i }}"
-                                   value="{{ content.dense_captions[i].get('text') }}" class="btn btn-primary"
-                                   onclick="setCaptions({{ i }})" checked>
-                        </td>
-                        <td id="caption-text-{{ i }}">{{ content.dense_captions[i].get('text') }}</td>
-                        <td id="caption-confidence-{{ i }}">{{ content.dense_captions[i].get('confidence') }}</td>
-                    <tr/>
-                {% endfor %}
-            </table>
-        </div>
-        <div class="mb3">
-            <table border="1" width="100%" class="table-striped">
-                <tr>
-                    <th>Accept</th>
-                    <th>Name</th>
-                    <th>Confidence</th>
-                </tr>
-                {% for i in range(content.tags | length) %}
-                    <tr id={{ i }}>
-                        <td id="check-box-{{ i }}">
-                            <label for="relevant-tag-{{ i }}">Accept</label>
-                            <input type="checkbox" id="relevant-tag-{{ i }}"
-                                   value="{{ content.tags[i].get('name') }}" class="btn btn-primary"
-                                   onclick="setTag({{ i }})" checked>
-                        </td>
-                        <td id="tag-text-{{ i }}">{{ content.tags[i].get('name') }}</td>
-                        <td id="tag-confidence-{{ i }}">{{ content.tags[i].get('confidence') }}</td>
-                    <tr/>
-                {% endfor %}
-            </table>
-        </div>
-        <div class="mb-3">
-            <label for="caption" class="form-label">Caption</label>
-            <textarea class="form-control" id="caption" rows="3">{{ content.azure_caption }}</textarea>
-        </div>
-        <div class="mb-3">
-            <label for="id" class="form-label">Id</label>
-            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-            <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="subreddit" class="form-label">Subreddit</label>
-            <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="model" class="form-label">Model</label>
-            <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
-        </div>
-    </div>
+    <style>
+        .image-grid {
+            display: grid;
+            padding: 5px;
+        }
 
+        .image-grid img {
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+
+        .image-container {
+            display: flex;
+        }
+
+        .image-container .image-wrapper {
+            position: relative;
+            width: 100%;
+            height: auto;
+            overflow: hidden;
+        }
+
+        .image-container .image-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            overflow: auto;
+        }
+
+        .modal-content {
+            display: block;
+            margin: auto;
+            margin-top: 10%;
+            max-width: 90%;
+            max-height: 80%;
+            overflow: auto;
+            text-align: center;
+        }
+
+        .modal-content img {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            cursor: zoom-in;
+        }
+
+        .modal-content img.zoomed {
+            cursor: zoom-out;
+            max-width: none;
+            max-height: none;
+        }
+
+        .modal-buttons {
+            margin-top: 10px;
+        }
+
+        .modal-buttons button {
+            margin: 5px;
+        }
+
+        .warning {
+            border: 2px solid red;
+        }
+
+        .success {
+            border: 2px solid green;
+        }
+    </style>
+    <script>
+        var modalContent;
+        var initialTouchPosition;
+
+        function openModal(imageUrl, image_name) {
+            var modal = document.getElementById("modal");
+            modalContent = document.getElementById("modal-content");
+            modal.style.display = "block";
+            modalContent.innerHTML = `
+            <img src="${imageUrl}" alt="Full-size Image">
+            <div class="modal-buttons">
+              <button class="btn btn-primary" onclick="acceptImage('${image_name}')">Accept</button>
+              <button class="btn btn-danger" onclick="rejectImage('${image_name}')">Reject</button>
+            </div>
+            `;
+            modalContent.addEventListener("touchstart", handleTouchStart, {passive: true});
+            modalContent.addEventListener("touchmove", handleTouchMove, {passive: true});
+        }
+
+        function closeModal() {
+            var modal = document.getElementById("modal");
+            modal.style.display = "none";
+            modalContent.innerHTML = "";
+            modalContent.removeEventListener("touchstart", handleTouchStart, {passive: true});
+            modalContent.removeEventListener("touchmove", handleTouchMove, {passive: true});
+        }
+
+        function handleTouchStart(event) {
+            initialTouchPosition = event.touches[0].clientX;
+        }
+
+        function handleTouchMove(event) {
+            if (event.touches.length > 1) return;
+            var currentTouchPosition = event.touches[0].clientX;
+            var diffX = currentTouchPosition - initialTouchPosition;
+            if (Math.abs(diffX) > 10) {
+                initialTouchPosition = currentTouchPosition;
+            }
+        }
+
+        function acceptImage(elementName) {
+            var element = document.getElementById(elementName);
+            element.setAttribute('value', 'true')
+            var event = new Event('change');
+            element.dispatchEvent(event);
+            closeModal();
+        }
+
+        function rejectImage(elementName) {
+            var element = document.getElementById(elementName);
+            element.setAttribute('value', 'false')
+            var event = new Event('change');
+            element.dispatchEvent(event);
+            closeModal();
+        }
+    </script>
     <script>
         function sendForAnalysis() {
             $.ajax({
@@ -111,48 +293,37 @@
         }
 
         function setTag(i) {
-            var id = $('#relevant-tag-' + i).attr('id');
-            var thing = document.getElementById(id);
-            var checked = thing.checked;
+            let relevant_tag_selector = '#relevant-tag-' + i
+            let id = $(relevant_tag_selector).attr('id');
+            let thing = document.getElementById(id);
+            let checked = thing.checked;
 
-            var text_id = $('#tag-text-' + i).attr('id');
-            var text_thing = document.getElementById(text_id);
-            var text = text_thing.innerHTML;
+            let text_id_selector = '#tag-text-' + i
+            let text_id = $(text_id_selector).attr('id');
+            let text_thing = document.getElementById(text_id);
+            let text = text_thing.innerHTML;
             if (checked) {
-                $('#relevant-tag-' + i).val(text);
+                $(relevant_tag_selector).val(text);
             } else {
-                $('#relevant-tag-' + i).val("");
+                $(relevant_tag_selector).val("");
             }
         }
 
         function setCaptions(i) {
-            var id = $('#additional-caption-' + i).attr('id');
-            var thing = document.getElementById(id);
-            var checked = thing.checked;
+            let additional_caption_selector = '#additional-caption-' + i;
+            let id = $(additional_caption_selector).attr('id');
+            let thing = document.getElementById(id);
+            let checked = thing.checked;
 
-            var text_id = $('#caption-text-' + i).attr('id');
-            var text_thing = document.getElementById(text_id);
-            var text = text_thing.innerHTML;
+            let caption_text_selector = '#caption-text-' + i;
+            let text_id = $(caption_text_selector).attr('id');
+            let text_thing = document.getElementById(text_id);
+            let text = text_thing.innerHTML;
             if (checked) {
-                $('#additional-caption-' + i).val(text);
+                $(additional_caption_selector).val(text);
             } else {
-                $('#additional-caption-' + i).val("");
+                $(additional_caption_selector).val("");
             }
-        }
-
-        function showImage() {
-            $(".images img").click(function () {
-                $("#full-image").attr("src", $(this).attr("src"));
-                $('#image-viewer').show();
-                return;
-            });
-        }
-
-        function closeImage() {
-            $("#image-viewer .close").click(function () {
-                $('#image-viewer').hide();
-                return;
-            });
         }
 
         function accept() {
@@ -164,23 +335,23 @@
         }
 
         function sendRequest(status) {
-            var captions = [];
-            var tags = [];
+            const captions = [];
+            const tags = [];
             {% for i in range(content.dense_captions | length) %}
-                var id = $('#additional-caption-{{ i }}').attr('id');
-                var thing = document.getElementById(id);
-                var checked = thing.checked;
-                if (checked) {
-                    var data = $('#additional-caption-{{ i }}').val();
+                var additional_caption_id = $('#additional-caption-{{ i }}').attr('id');
+                var additional_caption_element = document.getElementById(additional_caption_id);
+                var additional_caption_element_checked = additional_caption_element.checked;
+                if (additional_caption_element_checked) {
+                    let data = $('#additional-caption-{{ i }}').val();
                     captions.push(data);
                 }
             {% endfor %}
             {% for i in range(content.tags | length) %}
-                var id = $('#relevant-tag-{{ i }}').attr('id');
-                var thing = document.getElementById(id);
-                var checked = thing.checked;
-                if (checked) {
-                    var data = $('#relevant-tag-{{ i }}').val();
+                var id_for_tag = $('#relevant-tag-{{ i }}').attr('id');
+                var element_for_check_box = document.getElementById(id_for_tag);
+                var checked_tag = element_for_check_box.checked;
+                if (checked_tag) {
+                    let data = $('#relevant-tag-{{ i }}').val();
                     tags.push(data);
                 }
             {% endfor %}
@@ -193,15 +364,54 @@
                 },
                 data: {
                     "id": "{{ content.id }}",
-                    "caption": $("#caption").val(),
+                    "subreddit": "{{ content.subreddit }}",
                     "action": status,
                     "additional_captions": captions.join(','),
                     "additional_tags": tags.join(','),
-                    "subreddit": "{{ content.subreddit }}"
+                    "pil_crop_accept": $('#pil').val(),
+                    "reddit_caption": $('#reddit-caption').val(),
+                    "azure_crop_accept": $('#azure').val(),
+                    "azure_caption": $('#azure-caption').val(),
+                    "smart_crop_accept": $('#smart').val(),
+                    "smart_caption": $('#smart-caption').val(),
+                    "best_caption": $('#best-caption').val()
                 },
                 success: function (data) {
                     window.location.href = data.redirect;
                 }
+            });
+        }
+    </script>
+    <script>
+        function validateInput() {
+            var id = event.target.id;
+            var target_id = id + "-wrapper";
+
+            var event_accept = event.target.value;
+            var inputElement = document.getElementById(target_id);
+
+            if (event_accept === false || event_accept === "false") {
+                inputElement.classList.remove("success");
+                inputElement.classList.add("warning");
+                return;
+            }
+            if (event_accept === true || event_accept === "true") {
+                inputElement.classList.remove("warning");
+                inputElement.classList.add("success");
+                return;
+            }
+            inputElement.classList.remove("success");
+            inputElement.classList.add("warning");
+            return;
+
+        }
+    </script>
+    <script>
+        function copytext() {
+            var id = event.target.id;
+            navigator.clipboard.readText().then(() => {
+                const target_value = document.getElementById(id).value;
+                navigator.clipboard.writeText(target_value);
             });
         }
     </script>

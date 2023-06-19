@@ -1,10 +1,9 @@
-import time
+import json
+import os
+
+import requests
 
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
-import os
-import requests
-import json
-
 from shared_code.azure_storage.tables import TableAdapter
 
 

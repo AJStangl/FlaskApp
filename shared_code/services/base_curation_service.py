@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-import pandas
-
 from shared_code.azure_storage.tables import TableAdapter
 
 

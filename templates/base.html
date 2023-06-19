@@ -1,4 +1,5 @@
 <!doctype html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
     <!-- Required meta tags -->
@@ -19,7 +20,8 @@
         </div>
         <div class="toolbar">
             <form action="{{ url_for('index.select_endpoint') }}" method="GET">
-                <select name="endpoint" class="form-select" aria-label="Select Endpoint" onchange="submit()">
+                <select name="endpoint" class="form-control form-select" aria-label="Select Endpoint"
+                        onchange="submit()">
                     <option class="form-control" selected>Select Activity</option>
                     <option class="form-control" value="primary">Primary Curation</option>
                     <option class="form-control" value="secondary">Secondary Curation</option>
@@ -44,9 +46,12 @@
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
 
-{% block content %}{% endblock %}
-
 <script>
+    document.addEventListener('fullscreenchange', exitHandler);
+    document.addEventListener('webkitfullscreenchange', exitHandler);
+    document.addEventListener('mozfullscreenchange', exitHandler);
+    document.addEventListener('MSFullscreenChange', exitHandler);
+
     function toggleFullScreen(element) {
         if (
             !document.fullscreenElement &&
@@ -75,12 +80,6 @@
             }
         }
     }
-</script>
-<script>
-    document.addEventListener('fullscreenchange', exitHandler);
-    document.addEventListener('webkitfullscreenchange', exitHandler);
-    document.addEventListener('mozfullscreenchange', exitHandler);
-    document.addEventListener('MSFullscreenChange', exitHandler);
 
     function exitHandler() {
         if (
@@ -94,7 +93,7 @@
     }
 
     function exitFullscreen() {
-        var fullscreenDiv = document.querySelector('.fullscreen');
+        const fullscreenDiv = document.querySelector('.fullscreen');
         if (fullscreenDiv) {
             document.body.removeChild(fullscreenDiv);
         }
@@ -102,20 +101,26 @@
 
     function showFullscreenImage(imgSrc) {
         exitFullscreen();
-        var fullscreenDiv = document.createElement('div');
+        const fullscreenDiv = document.createElement('div');
         fullscreenDiv.className = 'fullscreen';
-        var img = document.createElement('img');
+        const img = document.createElement('img');
         img.src = imgSrc;
         img.onclick = exitFullscreen;
         fullscreenDiv.appendChild(img);
         document.body.appendChild(fullscreenDiv);
     }
+    function copytext() {
+        navigator.clipboard.readText().then(() => {
+            const target_value = document.querySelector("#id").placeholder
+            navigator.clipboard.writeText(target_value);
+        });
+    }
 </script>
+
 <style>
     .image-container {
         display: flex;
     }
-
     .image-container .image-wrapper {
         position: relative;
         width: 50%; /* Adjust this value as needed */
@@ -168,22 +173,22 @@
         z-index: 99999;
     }
 
-    .image-container {
+    .image-container-secondary {
         display: flex;
     }
 
-    .image-container .image-wrapper {
+    .image-container-secondary .image-wrapper {
         position: relative;
-        width: 50%; /* Adjust this value as needed */
+        width: auto;
         height: auto;
     }
 
-    .image-container img {
-        width: 100%;
+    .image-container-secondary img{
+        width: auto;
         height: auto;
     }
 
-    .image-container .image-label {
+    .image-container-secondary .image-label {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -194,6 +199,36 @@
         text-align: center;
         font-size: 14px;
     }
+
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .loading-icon {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 </style>
+
+{% block content %}{% endblock %}
+
+
+
 </body>
 </html>

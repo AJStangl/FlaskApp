@@ -1,6 +1,4 @@
-import json
-
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify
+from flask import Blueprint, render_template, request, jsonify
 
 from shared_code.azure_storage.tables import TableAdapter
 

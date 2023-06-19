@@ -4,7 +4,7 @@ from endpoints.index import index_bp
 from endpoints.primary import primary_bp
 from endpoints.secondary import secondary_bp
 from endpoints.summary import summary_bp
-from shared_code.services.azure_queue import MessageBroker
+from shared_code.background.message_broker import MessageBroker
 
 app = Flask(__name__)
 
@@ -16,8 +16,9 @@ app.register_blueprint(summary_bp)
 Bootstrap(app)
 
 # Initialize message broker
-message_broker = MessageBroker()
+message_broker: MessageBroker = MessageBroker()
 message_broker.start()
+
 if __name__ == '__main__':
     try:
         app.run()

@@ -3,11 +3,11 @@ import os
 
 from azure.core.credentials import AzureNamedKeyCredential
 from azure.core.paging import ItemPaged
-from azure.data.tables import TableClient, TableEntity
+from azure.data.tables import TableClient, TableEntity, TableServiceClient
 
 logging.getLogger("azure.storage").setLevel(logging.WARNING)
 
-from azure.data.tables import TableServiceClient
+
 
 
 class TableAdapter(object):

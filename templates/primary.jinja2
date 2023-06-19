@@ -5,7 +5,7 @@
         <div><p>number of images remaining: {{ num_remaining }}</p></div>
         <div id="image-container" class="image-container">
             <div class="image-wrapper" onclick="toggleFullScreen(this)" style="width: auto; height: auto;">
-                <img src={{ link }}>
+                <img alt="" src={{ link }} >
                 <div class="image-label">Original Image</div>
             </div>
         </div>
@@ -20,8 +20,7 @@
         </div>
         <div class="mb-3">
             <label for="id" class="form-label">Id</label>
-            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly
-                   onclick="copyText()">
+            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly onclick="copyText()">
         </div>
         <div class="mb-3">
             <label for="title" class="form-label">Title</label>
@@ -41,13 +40,6 @@
         </div>
     </div>
     <script>
-        function copyText() {
-            navigator.clipboard.readText().then((clipText) => {
-                var target_value = document.querySelector("#id").placeholder
-                navigator.clipboard.writeText(target_value);
-            });
-        }
-
         function accept() {
             sendRequest("accept")
             document.getElementsByClassName("loading-container")[0].hidden = false;
@@ -59,15 +51,15 @@
         }
 
         function sendRequest(status) {
-            var button = document.getElementById("accept");
+            const button = document.getElementById("accept");
             button.disabled = true;
             button.hidden = true;
 
-            var button2 = document.getElementById("reject");
+            const button2 = document.getElementById("reject");
             button2.disabled = true;
             button2.hidden = true;
 
-            var image_container = document.getElementById("image-container");
+            const image_container = document.getElementById("image-container");
             image_container.hidden = true;
 
             $.ajax({
@@ -87,32 +79,5 @@
                 }
             });
         }
-
     </script>
-    <style>
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .loading-icon {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
 {% endblock %}

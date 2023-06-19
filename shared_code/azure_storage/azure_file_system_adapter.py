@@ -1,6 +1,7 @@
 from adlfs import AzureBlobFileSystem
 import os
 
+
 class AzureFileStorageAdapter(object):
 	def __init__(self, container_name: str):
 		self._account_name: str = os.environ["AZURE_ACCOUNT_NAME"]

@@ -7,9 +7,7 @@ from shared_code.services.base_curation_service import BaseService
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 
 
-
-
-
+# noinspection PyBroadException
 class SecondaryCurationService(BaseService):
 	def __init__(self, table_name: str):
 		super().__init__(table_name)
@@ -22,6 +20,7 @@ class SecondaryCurationService(BaseService):
 	def add_new_entry(self, primary_entity: dict) -> None:
 		client = self.get_table_client()
 		try:
+			reddit_caption = primary_entity['subreddit'] + "," + primary_entity['title']
 			entity = {
 				'PartitionKey': primary_entity['subreddit'],
 				'RowKey': primary_entity['id'],
@@ -45,7 +44,13 @@ class SecondaryCurationService(BaseService):
 				'thumbnail_exists': False,
 				'thumbnail_curated': False,
 				'thumbnail_accept': False,
-				'additional_captions': ''
+				'additional_captions': '',
+				'smart_caption': '',
+				'best_caption': '',
+				'reddit_caption': reddit_caption,
+				'pil_crop_accept': False,
+				'azure_crop_accept': False,
+				'smart_crop_accept': False
 			}
 			client.upsert_entity(entity)
 			return None
@@ -65,28 +70,51 @@ class SecondaryCurationService(BaseService):
 			entity = client.get_entity(partition_key=subreddit, row_key=record_id)
 			try:
 				thumbnail_path = self._file_system.url(entity['thumbnail_path'])
-			except:
+			except Exception as e:
+				print(e)
 				thumbnail_path = "/data/nope/"
 			try:
-				original_path = self._file_system.url(entity['path'])
-			except:
-				original_path = "/data/nope/"
+				azure_thumbnail = self._file_system.url(entity['azure_thumbnail_path'])
+			except Exception as e:
+				print(e)
+				azure_thumbnail = "/data/nope/"
 			try:
-				alternate_path = self._file_system.url(entity['azure_thumbnail_path'])
-			except:
-				alternate_path = "/data/nope/"
-			return thumbnail_path, original_path, alternate_path
+				pil_thumbnail = self._file_system.url(entity['pil_thumbnail_path'])
+			except Exception as e:
+				print(e)
+				pil_thumbnail = "/data/nope/"
+			return thumbnail_path, azure_thumbnail, pil_thumbnail
 		finally:
 			client.close()
 
-	def update_record(self, record_id: str, subreddit: str, action: str, caption: str, additional_captions: list[str], relevant_tags: list[str]) -> None:
+
+	def update_record(self,
+					  record_id: str,
+					  subreddit: str,
+					  action: str,
+					  reddit_caption: str,
+					  smart_caption: str,
+					  azure_caption: str,
+					  best_caption: str,
+					  pil_crop_accept: bool,
+					  azure_crop_accept: bool,
+					  smart_crop_accept: bool,
+					  additional_captions: list[str],
+					  relevant_tags: list[str]) -> None:
+
 		client = self.get_table_client()
 		try:
 			if action == 'accept':
 				entity = client.get_entity(partition_key=subreddit, row_key=record_id)
 				entity['thumbnail_curated'] = True
 				entity['thumbnail_accept'] = True
-				entity['azure_caption'] = caption
+				entity['azure_caption'] = azure_caption
+				entity['smart_caption'] = smart_caption
+				entity['best_caption'] = best_caption
+				entity['reddit_caption'] = reddit_caption
+				entity['pil_crop_accept'] = pil_crop_accept
+				entity['azure_crop_accept'] = azure_crop_accept
+				entity['smart_crop_accept'] = smart_crop_accept
 				entity['additional_captions'] = json.dumps(additional_captions)
 				entity['tags'] = json.dumps(relevant_tags)
 				client.update_entity(entity=entity)
@@ -95,9 +123,16 @@ class SecondaryCurationService(BaseService):
 				entity = client.get_entity(partition_key=subreddit, row_key=record_id)
 				entity['thumbnail_curated'] = True
 				entity['thumbnail_accept'] = False
-				entity['azure_caption'] = caption
+				entity['azure_caption'] = azure_caption
+				entity['smart_caption'] = smart_caption
+				entity['best_caption'] = best_caption
+				entity['reddit_caption'] = reddit_caption
+				entity['pil_crop_accept'] = pil_crop_accept
+				entity['azure_crop_accept'] = azure_crop_accept
+				entity['smart_crop_accept'] = smart_crop_accept
 				entity['additional_captions'] = json.dumps(additional_captions)
 				entity['tags'] = json.dumps(relevant_tags)
+				print(json.dumps(entity, indent=4))
 				client.update_entity(entity=entity)
 				return None
 		finally:
@@ -124,7 +159,6 @@ class SecondaryCurationService(BaseService):
 		try:
 			is_curated = 'thumbnail_curated eq false'
 			is_accepted = 'thumbnail_accept eq false'
-			# is_sexy = "subreddit eq 'selfies' or subreddit eq 'Amicute' or subreddit eq 'amihot' or subreddit eq 'AmIhotAF' or subreddit eq 'HotGirlNextDoor' or subreddit eq 'sfwpetite' or subreddit eq 'cougars_and_milfs_sfw' or subreddit eq 'SFWRedheads' or subreddit eq 'SFWNextDoorGirls' or subreddit eq 'SunDressesGoneWild' or subreddit eq 'ShinyDresses' or subreddit eq 'SlitDresses' or subreddit eq 'CollaredDresses' or subreddit eq 'DressesPorn' or subreddit eq 'WomenInLongDresses' or subreddit eq 'Dresses' or subreddit eq 'realasians' or subreddit eq 'KoreanHotties' or subreddit eq 'prettyasiangirls' or subreddit eq 'AsianOfficeLady' or subreddit eq 'AsianInvasion' or subreddit eq 'AesPleasingAsianGirls' or subreddit eq 'sexygirls' or subreddit eq 'PrettyGirls' or subreddit eq 'gentlemanboners' or subreddit eq 'hotofficegirls' or subreddit eq 'tightdresses' or subreddit eq 'DLAH' or subreddit eq 'TrueFMK'"
 			query = f"{is_curated} and {is_accepted}"
 			entity = client.query_entities(query)
 			return next(entity)
@@ -139,5 +173,4 @@ class SecondaryCurationService(BaseService):
 	def get_relevant_tags(self, name):
 		relevant_tags = TableAdapter().get_table_client('relevantTags')
 		tags = list(relevant_tags.query_entities(f"PartitionKey eq '{name}'"))
-
 		return tags
