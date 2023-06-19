@@ -8,23 +8,33 @@ import json
 from shared_code.azure_storage.tables import TableAdapter
 
 
-def auto_azure_thumbnail(_image_id: str, width: int = 512, height: int = 512, smartCropping: bool = True):
-	_file_system = AzureFileStorageAdapter('data').get_file_storage()
-	endpoint = f"vision/v3.1/generateThumbnail?width={width}&height={height}&smartCropping={smartCropping}"
-	base = os.environ["AZURE_VISION_ENDPOINT"]
-	url = f"{base}{endpoint}"
-	headers = {
-		"Ocp-Apim-Subscription-Key": os.environ["AZURE_VISION_API_KEY"],
-	}
-	data = {
-		"url": _file_system.url(f"data/image/{_image_id}.jpg")
-	}
-	result = requests.post(url, headers=headers, data=json.dumps(data))
+def auto_azure_thumbnail(_image_id: str, width: int = 512, height: int = 512, smartCropping: bool = False):
+	try:
+		_file_system = AzureFileStorageAdapter('data').get_file_storage()
+		endpoint = f"vision/v3.1/generateThumbnail?width={width}&height={height}&smartCropping={smartCropping}"
+		base = os.environ["AZURE_VISION_ENDPOINT"]
+		url = f"{base}{endpoint}"
+		headers = {
+			"Ocp-Apim-Subscription-Key": os.environ["AZURE_VISION_API_KEY"],
+		}
+		data = {
+			"url": _file_system.url(f"data/image/{image_id}.jpg")
+		}
+		result = requests.post(url, headers=headers, data=json.dumps(data))
 
-	with _file_system.open(f"data/image/azure/{_image_id}.jpg", 'wb') as f:
-		f.write(result.content)
+		if result.status_code != 200:
+			print(f"Error creating Azure thumbnail for {image_id}: {result.status_code}")
+			print(result.content)
+			return None
 
-	return f"data/image/azure/{_image_id}.jpg"
+		with _file_system.open(f"data/image/azure/{image_id}.jpg", 'wb') as f:
+			f.write(result.content)
+
+		print("Thumbnail Azure Thumbnail created for " + image_id)
+		return f"data/image/azure/{image_id}.jpg"
+	except Exception as ex:
+		print(f'Error creating Azure thumbnail for {image_id}: {ex}')
+		return None
 
 
 

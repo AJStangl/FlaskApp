@@ -17,6 +17,7 @@ class AzureCaption(object):
 	def __init__(self):
 		self.__subscription_key: str = os.environ["AZURE_VISION_API_KEY"]
 		self.__endpoint: str = os.environ["AZURE_VISION_ENDPOINT"]
+		self.__file_system: AzureBlobFileSystem = AzureFileStorageAdapter("data").get_file_storage()
 
 	def run_image_process(self, image_id: str) -> str:
 		fs = AzureFileStorageAdapter("data").get_file_storage()
@@ -101,13 +102,13 @@ class AzureCaption(object):
 
 		secondary_curation_table_client = table_adapter.get_table_client("curationSecondary")
 
-		current_captions = file_system.ls("data/caption")
+		current_captions = file_system.exists(f"data/caption/{image_id}.json")
 
-		current_thumbnails = file_system.ls("data/image/thumbnail")
+		current_thumbnails_exists = file_system.exists(f"data/image/thumbnail/{image_id}.jpg")
 
-		print(f"=== current caption files: {len(current_captions)} ===")
+		print(f"=== current caption files: {current_captions} ===")
 
-		if f"data/caption/{image_id}.json" not in current_captions:
+		if not current_captions:
 			print("No caption file found, no analysis to run")
 			return
 
@@ -178,9 +179,9 @@ class AzureCaption(object):
 
 		cropping = filtered_data['smart_crop'][0]
 
-		thumbnail_path = self.create_thumbnail(image_id, current_thumbnails, cropping, entity['path'])
+		thumbnail_path = self.create_thumbnail(image_id, cropping, entity['path'])
 
-		azure_thumbnail_path = self.auto_azure_thumbnail(image_id, file_system)
+		azure_thumbnail_path = self.auto_azure_thumbnail(image_id)
 
 		if azure_thumbnail_path is not None:
 			entity['azure_thumbnail_path'] = azure_thumbnail_path
@@ -199,14 +200,10 @@ class AzureCaption(object):
 	def get_bounding_box(self, x: object):
 		return x['crops'][0]['boundingBox']
 
-	def create_thumbnail(self, target_image_id: str, file_names: list, cropping_information: dict, parent_image_path: str):
+	def create_thumbnail(self, target_image_id: str,  cropping_information: dict, parent_image_path: str):
 		_file_system: AzureBlobFileSystem = AzureFileStorageAdapter('data').get_file_storage()
 		out_path = f"data/image/thumbnail/{target_image_id}.jpg"
 		try:
-			if target_image_id is None or out_path in file_names:
-				return out_path
-
-
 			image_url = _file_system.url(parent_image_path)
 			original_image = Image.open(requests.get(image_url, stream=True).raw)
 			copied_image = original_image.copy()
@@ -236,7 +233,6 @@ class AzureCaption(object):
 
 	def auto_azure_thumbnail(self, image_id: str, width: int = 512, height: int = 512, smartCropping: bool = True):
 		try:
-			file_system = AzureFileStorageAdapter('data').get_file_storage()
 			endpoint = f"vision/v3.1/generateThumbnail?width={width}&height={height}&smartCropping={smartCropping}"
 			base = os.environ["AZURE_VISION_ENDPOINT"]
 			url = f"{base}{endpoint}"
@@ -244,7 +240,8 @@ class AzureCaption(object):
 				"Ocp-Apim-Subscription-Key": os.environ["AZURE_VISION_API_KEY"],
 			}
 			data = {
-				"url": file_system.url(f"data/image/{image_id}.jpg")
+
+				"url": "https://ajdevreddit.blob.core.windows.net/data/image/" + image_id + ".jpg"
 			}
 			result = requests.post(url, headers=headers, data=json.dumps(data))
 
@@ -253,7 +250,7 @@ class AzureCaption(object):
 				print(result.content)
 				return None
 
-			with file_system.open(f"data/image/azure/{image_id}.jpg", 'wb') as f:
+			with self.__file_system.open(f"data/image/azure/{image_id}.jpg", 'wb') as f:
 				f.write(result.content)
 
 			print("Thumbnail Azure Thumbnail created for " + image_id)

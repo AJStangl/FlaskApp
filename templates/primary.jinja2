@@ -40,7 +40,6 @@
             <textarea class="form-control" id="caption" rows="3">{{ content.caption }}</textarea>
         </div>
     </div>
-
     <script>
         function copyText() {
             navigator.clipboard.readText().then((clipText) => {
@@ -56,6 +55,7 @@
 
         function reject() {
             sendRequest("reject");
+            document.getElementsByClassName("loading-container")[0].hidden = false;
         }
 
         function sendRequest(status) {
