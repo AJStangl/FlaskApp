@@ -52,7 +52,7 @@ def secondary_image(name, subreddit):
 							   pil_thumbnail=pil_thumbnail,
 							   reddit_caption=reddit_caption,
 							   content=record,
-							   num_remaining=0)
+							   num_remaining=secondary_curation_service.get_num_remaining_records())
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
