@@ -51,8 +51,8 @@ class SecondaryCurationService(BaseService):
 				'pil_crop_accept': False,
 				'azure_crop_accept': False,
 				'smart_crop_accept': False,
-				'pil_thumbnail_path':'',
-				'azure_thumbnail_path':'',
+				'pil_thumbnail_path': '',
+				'azure_thumbnail_path': '',
 			}
 			client.upsert_entity(entity)
 			return None
@@ -63,7 +63,7 @@ class SecondaryCurationService(BaseService):
 		client = self.get_table_client()
 		try:
 			old_query = 'thumbnail_curated eq false'
-			query = "(pil_crop_accept eq false and azure_crop_accept eq false and smart_crop_accept eq false) or (thumbnail_curated eq false and thumbnail_accept eq false)"
+			query = "(pil_crop_accept eq false and azure_crop_accept eq false and smart_crop_accept eq false and thumbnail_curated eq true) or (thumbnail_curated eq false and thumbnail_accept eq false)"
 			return len(list(client.query_entities(query, select=["id"])))
 		finally:
 			client.close()
@@ -166,8 +166,7 @@ class SecondaryCurationService(BaseService):
 			is_pil_accepted = 'pil_crop_accept eq false'
 			is_azure_accepted = 'azure_crop_accept eq false'
 			is_smart_accepted = 'smart_crop_accept eq false'
-			query = "(pil_crop_accept eq false and azure_crop_accept eq false and smart_crop_accept eq false) or (thumbnail_curated eq false and thumbnail_accept eq false)"
-			# query = f"{is_curated} and {is_accepted} and {is_pil_accepted} and {is_azure_accepted} and {is_smart_accepted}"
+			query = "(pil_crop_accept eq false and azure_crop_accept eq false and smart_crop_accept eq false and thumbnail_curated eq true) or (thumbnail_curated eq false and thumbnail_accept eq false)"
 			entity = client.query_entities(query)
 			return next(entity)
 		finally:
