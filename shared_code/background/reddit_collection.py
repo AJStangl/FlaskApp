@@ -1,22 +1,13 @@
+import asyncio
 import hashlib
 import os
 import threading
-
-from retry import retry
-import requests
-import pandas
-import asyncpraw
-import requests
-from PIL import Image
-from adlfs import AzureBlobFileSystem
-from azure.data.tables import TableClient
-import io
-import asyncio
 import time
+
 import asyncpraw
 import requests
-import os
-import hashlib
+from adlfs import AzureBlobFileSystem
+
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.azure_storage.tables import TableAdapter
 
@@ -67,9 +58,14 @@ class RedditImageCollector(threading.Thread):
 			{"name": "SFWMilfs", "data": ["cougars_and_milfs_sfw"]},
 			{"name": "RedHeadDiffusion", "data": ["SFWRedheads"]},
 			{"name": "NextDoorGirlsDiffusion", "data": ["SFWNextDoorGirls"]},
-			{"name": "SexyDressDiffusion", "data": ["SunDressesGoneWild", "ShinyDresses", "SlitDresses", "CollaredDresses", "DressesPorn", "WomenInLongDresses", "Dresses", "tightdresses", "DLAH"]},
-			{"name": "SexyAsianDiffusion", "data": ["realasians", "KoreanHotties", "prettyasiangirls", "AsianOfficeLady", "AsianInvasion", "AesPleasingAsianGirls"]},
-			{"name": "PrettyGirlDiffusion", "data": ["sexygirls", "PrettyGirls", "gentlemanboners", "hotofficegirls", "TrueFMK", "Ifyouhadtopickone"]},
+			{"name": "SexyDressDiffusion",
+			 "data": ["SunDressesGoneWild", "ShinyDresses", "SlitDresses", "CollaredDresses", "DressesPorn",
+					  "WomenInLongDresses", "Dresses", "tightdresses", "DLAH"]},
+			{"name": "SexyAsianDiffusion",
+			 "data": ["realasians", "KoreanHotties", "prettyasiangirls", "AsianOfficeLady", "AsianInvasion",
+					  "AesPleasingAsianGirls"]},
+			{"name": "PrettyGirlDiffusion",
+			 "data": ["sexygirls", "PrettyGirls", "gentlemanboners", "hotofficegirls", "TrueFMK", "Ifyouhadtopickone"]},
 			{"name": "CandleDiffusion", "data": ["bathandbodyworks"]}
 		]
 		self._worker_thread = threading.Thread(target=self.run, name="RedditImageCollector", daemon=True)
@@ -120,7 +116,7 @@ class RedditImageCollector(threading.Thread):
 		subreddit_name = "+".join(self._subs)
 		extant_data = self._get_extant_data(target)
 		# Create a Reddit instance
-		reddit = asyncpraw.Reddit(site_name='KimmieBotGPT')
+		reddit = asyncpraw.Reddit(client_id=os.environ['client_id'], client_secret=os.environ['client_secret'], password=os.environ['password'], user_agent="script:%(bot_name)s:v%(bot_version)s (by /u/%(bot_author)s)", username=os.environ["username"])
 		try:
 			subreddit = await reddit.subreddit(subreddit_name)
 
@@ -155,7 +151,6 @@ class RedditImageCollector(threading.Thread):
 			time.sleep(1)
 			await reddit.close()
 			raise Exception("RedditImageCollector: Error in run_polling_for_new_images")
-
 
 	def wrap_async(self):
 		try:
