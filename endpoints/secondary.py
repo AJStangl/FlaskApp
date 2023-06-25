@@ -36,13 +36,16 @@ def secondary_image(name, subreddit):
 		# dense_captions: list[dict] = secondary_curation_service.get_dense_captions(name)
 		# relevant_tags: list[dict] = secondary_curation_service.get_relevant_tags(name)
 
-		record['dense_captions'] = []  #dense_captions
-		record['tags'] = [] # relevant_tags
+		record['dense_captions'] = []   # dense_captions
+		record['tags'] = []            # relevant_tags
 
 		azure_caption = record.get('azure_caption')
-		thumbnail_caption = record.get('caption')
 
-		reddit_caption = f"{record.get('title')}, {record.get('thumbnail_caption')} in the style of {subreddit}"
+		thumbnail_caption = record.get('smart_caption')
+
+		pil_caption = record.get('pil_caption')
+
+		reddit_caption = f"{record.get('title')}, {thumbnail_caption} in the style of {subreddit}"
 
 		secondary_curation_service.num_remaining = secondary_curation_service.num_remaining - 1
 
@@ -52,6 +55,7 @@ def secondary_image(name, subreddit):
 							   azure_thumbnail=azure_thumbnail,
 							   azure_caption=azure_caption,
 							   pil_thumbnail=pil_thumbnail,
+							   pil_caption=pil_caption,
 							   reddit_caption=reddit_caption,
 							   content=record,
 							   num_remaining=secondary_curation_service.num_remaining)

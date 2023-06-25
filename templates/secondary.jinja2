@@ -75,9 +75,9 @@
                         <button id="smart-hide" class="btn btn-info" onclick="toggleHide('pil')">Revel Hidden Image</button>
                     </div>
                     <div class="mb-3">
-                        <label for="reddit-caption" class="form-label">Reddit Caption</label>
+                        <label for="pil-caption" class="form-label">PIL Caption</label>
                         <textarea class="form-control" id="reddit-caption" rows="3"
-                                  onclick="copytext()">{{ reddit_caption }}</textarea>
+                                  onclick="copytext()">{{ pil_caption }}</textarea>
                     </div>
                 </div>
             </div>
@@ -85,7 +85,7 @@
             <div id="overall-caption" class="container-fluid">
                 <div class="mb-3">
                     <label for="best-caption" class="form-label">Best Caption</label>
-                    <input type="text" class="form-control" id="best-caption" placeholder="">
+                    <input type="text" class="form-control" id="best-caption" placeholder="{{ reddit_caption }}">
                 </div>
             </div>
         </div>
