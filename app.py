@@ -5,6 +5,7 @@ from endpoints.primary import primary_bp
 from endpoints.secondary import secondary_bp
 from endpoints.summary import summary_bp
 from shared_code.background.message_broker import MessageBroker
+from shared_code.background.reddit_collection import RedditImageCollector
 
 app = Flask(__name__)
 
@@ -15,12 +16,20 @@ app.register_blueprint(secondary_bp)
 app.register_blueprint(summary_bp)
 Bootstrap(app)
 
+procs = []
+
 # Initialize message broker
 message_broker: MessageBroker = MessageBroker()
-message_broker.start()
+procs.append(message_broker)
+
+# Initialize background worker
+collector: RedditImageCollector = RedditImageCollector()
+procs.append(collector)
+
+[item.start() for item in procs]
 
 if __name__ == '__main__':
     try:
         app.run()
     except KeyboardInterrupt:
-        message_broker.stop()
+        [item.stop() for item in procs]

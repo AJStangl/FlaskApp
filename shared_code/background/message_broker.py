@@ -19,8 +19,7 @@ class MessageBroker(threading.Thread):
 	def __init__(self, name="curation-message-queue"):
 		super().__init__(name=name, daemon=True)
 		self.worker_thread = threading.Thread(target=self.run, name="curation-message-queue", daemon=True)
-		self.service = QueueServiceClient(account_url=os.environ["AZURE_QUEUE_ENDPOINT"],
-										  credential=os.environ["AZURE_ACCOUNT_KEY"])
+		self.service = QueueServiceClient(account_url=os.environ["AZURE_QUEUE_ENDPOINT"], credential=os.environ["AZURE_ACCOUNT_KEY"])
 		self.queue_name: str = name
 		self.dlq_name: str = name + "-dlq"
 

@@ -3,11 +3,11 @@ import json
 import os
 
 import requests
-from PIL import Image
+from PIL import Image, ImageOps, ImageFilter
 from adlfs import AzureBlobFileSystem
 from azure.ai.vision import VisionServiceOptions, VisionSource, ImageAnalysisOptions, ImageAnalysisFeature, \
 	ImageAnalyzer, ImageAnalysisResultDetails, ImageAnalysisResultReason, ImageAnalysisResult, ImageAnalysisErrorDetails
-
+from PIL.ImageOps import contain
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.azure_storage.tables import TableAdapter
 
@@ -261,6 +261,26 @@ class AzureCaption(object):
 			print(f'Error creating Azure thumbnail for {image_id}: {ex}')
 			return None
 
+
+
+	def _pad(self, image, size, centering=(0.5, 0.5)):
+		resized = contain(image, size)
+		temp_blur = image.resize((512, 512)).filter(ImageFilter.GaussianBlur(10))
+		if resized.size == size:
+			out = resized
+		else:
+			out = temp_blur
+			if resized.palette:
+				out.putpalette(resized.getpalette())
+			if resized.width != size[0]:
+				x = round((size[0] - resized.width) * max(0, min(centering[0], 1)))
+				out.paste(resized, (x, 0))
+			else:
+				y = round((size[1] - resized.height) * max(0, min(centering[1], 1)))
+				out.paste(resized, (0, y))
+		return out
+
+
 	def _create_pil_thumbnail(self, image_id: str):
 		try:
 			pil_thumbnail_path = f"data/image/pil_thumbnail/{image_id}.jpg"
@@ -269,11 +289,12 @@ class AzureCaption(object):
 				image = Image.open(f)
 				copied_image = image.copy()
 				image.close()
-				copied_image.thumbnail((512, 512), Image.BOX, reducing_gap=3.0)
+				padded_image = self._pad(copied_image, (512, 512))
 				read_bytes_buffer = io.BytesIO()
-				copied_image.save(read_bytes_buffer, format='JPEG')
+				padded_image.save(read_bytes_buffer, format='JPEG')
 				with self.__file_system.open(pil_thumbnail_path, 'wb') as out:
 					out.write(read_bytes_buffer.getvalue())
+				padded_image.close()
 				copied_image.close()
 				return pil_thumbnail_path
 		except Exception as e:

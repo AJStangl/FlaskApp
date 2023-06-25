@@ -12,126 +12,82 @@
                 <button id=skip class="btn btn-secondary" onclick="sendForAnalysis()">Send For Analysis</button>
             </div>
         </div>
-        <div class="image-grid">
+        <div id="image-grid" class="image-grid">
             <div class="container-fluid">
                 {#  Smart Crop Thumbnail  #}
-                <div class="image-container">
-                    <div class="image-wrapper" id="smart-wrapper">
-                        <img src="{{ thumbnail_path }}" alt="Smart Crop"
-                             onclick="openModal('{{ thumbnail_path }}', '{{ 'smart' }}')">
-                        <div class="image-label">Primary Thumbnail</div>
+                <div id="smart-crop">
+                    <div class="image-container">
+                        <div class="image-wrapper" id="smart-wrapper" onclick="toggleFullScreen(this)">
+                            <img src="{{ thumbnail_path }}" alt="Smart Crop">
+                            <div class="image-label">Primary Thumbnail</div>
+                        </div>
+                        <input id="smart" value=false onchange="validateInput('smart')" onload="validateInput('smart')"
+                               hidden>
                     </div>
-                    <input id="smart" value=false onchange="validateInput('smart')" onload="validateInput('smart')"
-                           hidden>
-                </div>
-                <div class="mb-3">
-                    <label for="smart-caption" class="form-label">Blip Caption</label>
-                    <textarea class="form-control" id="smart-caption" rows="3"
-                              onclick="copytext()">{{ thumbnail_caption }}</textarea>
+                    <div class="mb-3">
+                        <button class="btn btn-primary" onclick="acceptImage('smart')">Accept</button>
+                        <button class="btn btn-danger" onclick="rejectImage('smart')">Reject</button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="smart-caption" class="form-label">Blip Caption</label>
+                        <textarea class="form-control" id="smart-caption" rows="3"
+                                  onclick="copytext()">{{ thumbnail_caption }}</textarea>
+                    </div>
                 </div>
                 {#  Azure Thumbnail      #}
-                <div class="image-container">
-                    <div class="image-wrapper" id="azure-wrapper">
-                        <img src="{{ azure_thumbnail }}" alt="Azure Crop"
-                             onclick="openModal('{{ azure_thumbnail }}', '{{ 'azure' }}')">
-                        <div class="image-label">Azure Crop</div>
+                <div id="azure-thumbnail">
+                    <div class="image-container">
+                        <div class="image-wrapper" id="azure-wrapper" onclick="toggleFullScreen(this)">
+                            <img src="{{ azure_thumbnail }}" alt="Azure Crop">
+                            <div class="image-label">Azure Crop</div>
+                        </div>
+                        <input id="azure" value=false onchange="validateInput('azure')" onload="validateInput('azure')"
+                               hidden>
                     </div>
-                    <input id="azure" value=false onchange="validateInput('azure')" onload="validateInput('azure')"
-                           hidden>
-                </div>
-                <div class="mb-3">
-                    <label for="azure-caption" class="form-label">Azure Caption</label>
-                    <textarea class="form-control" id="azure-caption" rows="3"
-                              onclick="copytext()">{{ azure_caption }}</textarea>
+                    <div class="mb-3">
+                        <button class="btn btn-primary" onclick="acceptImage('azure')">Accept</button>
+                        <button class="btn btn-danger" onclick="rejectImage('azure')">Reject</button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="azure-caption" class="form-label">Azure Caption</label>
+                        <textarea class="form-control" id="azure-caption" rows="3"
+                                  onclick="copytext()">{{ azure_caption }}</textarea>
+                    </div>
                 </div>
                 {#  Pil Thumbnail       #}
-                <div class="image-container">
-                    <div class="image-wrapper" id="pil-wrapper">
-                        <img src="{{ pil_thumbnail }}" alt="PIL Thumbnail"
-                             onclick="openModal('{{ pil_thumbnail }}', '{{ 'pil' }}')">
-                        <div class="image-label">PIL Thumbnail</div>
+                <div id="pil-thumbnail">
+                    <div class="image-container">
+                        <div class="image-wrapper" id="pil-wrapper" onclick="toggleFullScreen(this)">
+                            <img src="{{ pil_thumbnail }}" alt="PIL Thumbnail">
+                            <div class="image-label">PIL Thumbnail</div>
+                        </div>
+                        <input id="pil" value=false onchange="validateInput('pil')" onload="validateInput('pil')"
+                               hidden>
                     </div>
-                    <input id="pil" value=false onchange="validateInput('pil')" onload="validateInput('pil')" hidden>
-                </div>
-                <div class="mb-3">
-                    <label for="reddit-caption" class="form-label">Reddit Caption</label>
-                    <textarea class="form-control" id="reddit-caption" rows="3"
-                              onclick="copytext()">{{ reddit_caption }}</textarea>
+                    <div class="mb-3">
+                        <button class="btn btn-primary" onclick="acceptImage('pil')">Accept</button>
+                        <button class="btn btn-danger" onclick="rejectImage('pil')">Reject</button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reddit-caption" class="form-label">Reddit Caption</label>
+                        <textarea class="form-control" id="reddit-caption" rows="3"
+                                  onclick="copytext()">{{ reddit_caption }}</textarea>
+                    </div>
                 </div>
             </div>
-            <div class="container-fluid">
+            {#      Overall Caption      #}
+            <div id="overall-caption" class="container-fluid">
                 <div class="mb-3">
                     <label for="best-caption" class="form-label">Best Caption</label>
                     <input type="text" class="form-control" id="best-caption" placeholder="">
                 </div>
             </div>
         </div>
-        <div id="modal" class="modal" onclick="closeModal()">
-            <div id="modal-content" class="modal-content"></div>
-        </div>
-        <div class="container-fluid">
-            <div class="mb-3">
-                <label for="id" class="form-label">Id</label>
-                <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly>
-            </div>
-            <div class="mb-3">
-                <label for="title" class="form-label">Title</label>
-                <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
-            </div>
-            <div class="mb-3">
-                <label for="subreddit" class="form-label">Subreddit</label>
-                <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
-            </div>
-            <div class="mb-3">
-                <label for="model" class="form-label">Model</label>
-                <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="mb3">
-                <table class="table-striped" style="width:100%">
-                    <tr>
-                        <th>Accept</th>
-                        <th>Text</th>
-                        <th>Confidence</th>
-                    </tr>
-                    {% for i in range(content.dense_captions | length) %}
-                        <tr id={{ i }}>
-                            <td id="check-box-{{ i }}">
-                                <label for="additional-caption-{{ i }}">Accept</label>
-                                <input type="checkbox" id="additional-caption-{{ i }}"
-                                       value="{{ content.dense_captions[i].get('text') }}" class="btn btn-primary"
-                                       onclick="setCaptions({{ i }})" checked>
-                            </td>
-                            <td id="caption-text-{{ i }}">{{ content.dense_captions[i].get('text') }}</td>
-                            <td id="caption-confidence-{{ i }}">{{ content.dense_captions[i].get('confidence') }}</td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
-            <div class="mb3">
-                <table class="table-striped" style="width: 100%;">
-                    <tr>
-                        <th>Accept</th>
-                        <th>Name</th>
-                        <th>Confidence</th>
-                    </tr>
-                    {% for i in range(content.tags | length) %}
-                        <tr id={{ i }}>
-                            <td id="check-box-{{ i }}">
-                                <label for="relevant-tag-{{ i }}">Accept</label>
-                                <input type="checkbox" id="relevant-tag-{{ i }}"
-                                       value="{{ content.tags[i].get('name') }}" class="btn btn-primary"
-                                       onclick="setTag({{ i }})" checked>
-                            </td>
-                            <td id="tag-text-{{ i }}">{{ content.tags[i].get('name') }}</td>
-                            <td id="tag-confidence-{{ i }}">{{ content.tags[i].get('confidence') }}</td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
+        <div class="loading-container" hidden>
+            <div class="loading-icon"></div>
         </div>
     </div>
+
     <style>
         .image-grid {
             display: grid;
@@ -212,62 +168,6 @@
         }
     </style>
     <script>
-        var modalContent;
-        var initialTouchPosition;
-
-        function openModal(imageUrl, image_name) {
-            var modal = document.getElementById("modal");
-            modalContent = document.getElementById("modal-content");
-            modal.style.display = "block";
-            modalContent.innerHTML = `
-            <div class="modal-buttons">
-              <button class="btn btn-primary" onclick="acceptImage('${image_name}')">Accept</button>
-              <button class="btn btn-danger" onclick="rejectImage('${image_name}')">Reject</button>
-            </div>
-            <img src="${imageUrl}" alt="Full-size Image">
-            `;
-            modalContent.addEventListener("touchstart", handleTouchStart, {passive: true});
-            modalContent.addEventListener("touchmove", handleTouchMove, {passive: true});
-        }
-
-        function closeModal() {
-            var modal = document.getElementById("modal");
-            modal.style.display = "none";
-            modalContent.innerHTML = "";
-            modalContent.removeEventListener("touchstart", handleTouchStart, {passive: true});
-            modalContent.removeEventListener("touchmove", handleTouchMove, {passive: true});
-        }
-
-        function handleTouchStart(event) {
-            initialTouchPosition = event.touches[0].clientX;
-        }
-
-        function handleTouchMove(event) {
-            if (event.touches.length > 1) return;
-            var currentTouchPosition = event.touches[0].clientX;
-            var diffX = currentTouchPosition - initialTouchPosition;
-            if (Math.abs(diffX) > 10) {
-                initialTouchPosition = currentTouchPosition;
-            }
-        }
-
-        function acceptImage(elementName) {
-            var element = document.getElementById(elementName);
-            element.setAttribute('value', 'true')
-            var event = new Event('change');
-            element.dispatchEvent(event);
-            closeModal();
-        }
-
-        function rejectImage(elementName) {
-            var element = document.getElementById(elementName);
-            element.setAttribute('value', 'false')
-            var event = new Event('change');
-            element.dispatchEvent(event);
-            closeModal();
-        }
-    </script>
-    <script>
         function sendForAnalysis() {
             $.ajax({
                 url: "/secondary/analysis/",
@@ -321,11 +221,31 @@
         }
 
         function accept() {
-            sendRequest("accept")
+            showLoadingIndication();
+            sendRequest("accept");
         }
 
         function reject() {
+            showLoadingIndication();
             sendRequest("reject");
+        }
+
+        function showLoadingIndication() {
+            document.getElementsByClassName("loading-container")[0].hidden = false;
+            const button = document.getElementById("accept");
+            button.disabled = true;
+            button.hidden = true;
+
+            const button2 = document.getElementById("reject");
+            button2.disabled = true;
+            button2.hidden = true;
+
+            const button3 = document.getElementById("skip");
+            button3.disabled = true;
+            button3.hidden = true;
+
+            const image_container = document.getElementById("image-grid");
+            image_container.hidden = true;
         }
 
         function sendRequest(status) {
@@ -409,4 +329,21 @@
             });
         }
     </script>
+    <script>
+        function acceptImage(elementName) {
+            var element = document.getElementById(elementName);
+            element.setAttribute('value', 'true')
+            var event = new Event('change');
+            element.dispatchEvent(event);
+        }
+
+        function rejectImage(elementName) {
+            var element = document.getElementById(elementName);
+            element.setAttribute('value', 'false')
+            var event = new Event('change');
+            element.dispatchEvent(event);
+        }
+    </script>
+
+
 {% endblock %}
