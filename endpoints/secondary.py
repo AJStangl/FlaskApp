@@ -33,15 +33,15 @@ def secondary_image(name, subreddit):
 		record_id = record.get('id')
 		subreddit = record.get('subreddit')
 		thumbnail_path, azure_thumbnail, pil_thumbnail = secondary_curation_service.get_image_url(record_id=record_id, subreddit=subreddit)
-		dense_captions: list[dict] = secondary_curation_service.get_dense_captions(name)
-		relevant_tags: list[dict] = secondary_curation_service.get_relevant_tags(name)
+		# dense_captions: list[dict] = secondary_curation_service.get_dense_captions(name)
+		# relevant_tags: list[dict] = secondary_curation_service.get_relevant_tags(name)
 
-		record['dense_captions'] = dense_captions
-		record['tags'] = relevant_tags
+		record['dense_captions'] = []  #dense_captions
+		record['tags'] = [] # relevant_tags
 
 		azure_caption = record.get('azure_caption')
 		thumbnail_caption = record.get('caption')
-		reddit_caption = f"{subreddit}, {record.get('title')}"
+		reddit_caption = f"{record.get('title')} in the style of {subreddit}"
 
 
 		return render_template('secondary.jinja2',
