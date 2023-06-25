@@ -123,10 +123,10 @@ class RedditImageCollector(threading.Thread):
 			async for submission in subreddit.stream.submissions(skip_existing=False):
 				await submission.load()
 				if submission.id in extant_data:
-					# print("Image already acquired")
+					print("=== Image already acquired ===")
 					continue
 				if submission is None:
-					time.sleep(1)
+					time.sleep(10)
 					continue
 				else:
 					if submission.url.endswith(('.jpg', '.jpeg', '.png')):
@@ -146,11 +146,12 @@ class RedditImageCollector(threading.Thread):
 						client.upsert_entity(row)
 						client.close()
 						extant_data = self._get_extant_data(target)
+						print(f"{row}")
 		except Exception as e:
 			print(e)
 			time.sleep(1)
 			await reddit.close()
-			raise Exception("RedditImageCollector: Error in run_polling_for_new_images")
+			raise Exception("=== RedditImageCollector: Error in run_polling_for_new_images ===")
 
 	def wrap_async(self):
 		try:
@@ -160,5 +161,5 @@ class RedditImageCollector(threading.Thread):
 			asyncio.run(self.run_polling_for_new_images())
 
 	def run(self):
-		print("Starting Reddit-Image-Collector Runner")
+		print("=== Starting Reddit-Image-Collector Runner ===")
 		self.wrap_async()
