@@ -153,6 +153,7 @@ class AzureCaption(object):
 			azure_thumbnail_path = self._auto_azure_thumbnail(image_id)
 
 			pil_thumbnail_path = self._create_pil_thumbnail(image_id)
+
 			if pil_thumbnail_path is not None:
 				entity['pil_thumbnail_path'] = pil_thumbnail_path
 
@@ -261,8 +262,6 @@ class AzureCaption(object):
 			print(f'Error creating Azure thumbnail for {image_id}: {ex}')
 			return None
 
-
-
 	def _pad(self, image, size, centering=(0.5, 0.5)):
 		resized = contain(image, size)
 		temp_blur = image.resize((512, 512)).filter(ImageFilter.GaussianBlur(10))
@@ -279,7 +278,6 @@ class AzureCaption(object):
 				y = round((size[1] - resized.height) * max(0, min(centering[1], 1)))
 				out.paste(resized, (0, y))
 		return out
-
 
 	def _create_pil_thumbnail(self, image_id: str):
 		try:

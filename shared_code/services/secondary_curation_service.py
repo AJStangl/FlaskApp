@@ -13,6 +13,7 @@ class SecondaryCurationService(BaseService):
 		super().__init__(table_name)
 		self._table_adapter = TableAdapter()
 		self._file_system: AzureBlobFileSystem = AzureFileStorageAdapter("data").get_file_storage()
+		self.num_remaining = self.get_num_remaining_records()
 
 	def get_table_client(self):
 		return self._table_adapter.get_table_client(self.table_name)
@@ -62,7 +63,7 @@ class SecondaryCurationService(BaseService):
 	def get_num_remaining_records(self) -> int:
 		client = self.get_table_client()
 		try:
-			old_query = 'thumbnail_curated eq false'
+			# old_query = 'thumbnail_curated eq false'
 			query = "(pil_crop_accept eq false and azure_crop_accept eq false and smart_crop_accept eq false and thumbnail_curated eq true and thumbnail_accept eq true) or (thumbnail_curated eq false and thumbnail_accept eq false)"
 			return len(list(client.query_entities(query, select=["id"])))
 		finally:

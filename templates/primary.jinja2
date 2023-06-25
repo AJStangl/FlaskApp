@@ -4,9 +4,9 @@
     <div class="container">
         <div><p>number of images remaining: {{ num_remaining }}</p></div>
         <div id="image-container" class="image-container">
-            <div class="image-wrapper" onclick="toggleFullScreen(this)" style="width: auto; height: auto;">
-                <img alt="" src={{ link }} >
-                <div class="image-label">Original Image</div>
+            <div class="image-wrapper" onclick="showFullscreenImage('{{ link }}')" style="width: auto; height: auto; background-image: url('{{ link }}')">
+                <img id='primary-image' alt="" src='{{ link }}' >
+                <div id='image-label' class="image-label">Original Image</div>
             </div>
         </div>
     </div>
@@ -40,6 +40,10 @@
         </div>
     </div>
     <script>
+        document.onreadystatechange = () => {
+          getInstrinsicSize(document.getElementById('primary-image'), 'image-label')
+        }
+
         function accept() {
             sendRequest("accept")
             document.getElementsByClassName("loading-container")[0].hidden = false;

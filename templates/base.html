@@ -45,13 +45,19 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.panzoom/4.0.0/panzoom.min.js"
+        integrity="sha512-9P4403el58YclVUmhMst5Bzpcy+i0V0F0wiMlrkTDgmVqYXhF+tccpnhGIHKzKPXKaTF0Q4J9UEhu2i6PckJWg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    function copytext() {
+        navigator.clipboard.readText().then(() => {
+            const target_value = document.querySelector("#id").placeholder
+            navigator.clipboard.writeText(target_value);
+        });
+    }
+</script>
 
 <script>
-    document.addEventListener('fullscreenchange', exitHandler);
-    document.addEventListener('webkitfullscreenchange', exitHandler);
-    document.addEventListener('mozfullscreenchange', exitHandler);
-    document.addEventListener('MSFullscreenChange', exitHandler);
-
     function toggleFullScreen(element) {
         if (
             !document.fullscreenElement &&
@@ -81,17 +87,6 @@
         }
     }
 
-    function exitHandler() {
-        if (
-            !document.fullscreenElement &&
-            !document.mozFullScreenElement &&
-            !document.webkitFullscreenElement &&
-            !document.msFullscreenElement
-        ) {
-            exitFullscreen();
-        }
-    }
-
     function exitFullscreen() {
         const fullscreenDiv = document.querySelector('.fullscreen');
         if (fullscreenDiv) {
@@ -99,20 +94,59 @@
         }
     }
 
+    function getInstrinsicSize(img, target_id) {
+        var intrinsicWidth = img.naturalWidth;
+        var intrinsicHeight = img.naturalHeight;
+        var result = `Intrinsic Size: ${intrinsicWidth}px × ${intrinsicHeight}px`;
+        console.log(result);
+        document.getElementById(target_id).innerHTML = `<p>${result}</p>`;
+        return;
+    }
+
+    function toggleZoom() {
+        const img = document.querySelector('.fullscreen img');
+        if (img.style.transform === 'scale(1)') {
+            img.style.transform = 'scale(2)'; // Zoom in by setting scale to 2
+            img.style.cursor = 'zoom-out'; // Change cursor to zoom-out when zoomed in
+        } else {
+            img.style.transform = 'scale(1)'; // Reset scale to 1 (zoom out)
+            img.style.cursor = 'zoom-in'; // Change cursor to zoom-in when zoomed out
+        }
+    }
+
+
     function showFullscreenImage(imgSrc) {
         exitFullscreen();
-        const fullscreenDiv = document.createElement('div');
+
+        var fullscreenDiv = document.createElement('div');
         fullscreenDiv.className = 'fullscreen';
-        const img = document.createElement('img');
+        var img = document.createElement('img');
         img.src = imgSrc;
         img.onclick = exitFullscreen;
+        img.ontouchmove = toggleZoom;
+        img.classList.add('pannable-image');
+
         fullscreenDiv.appendChild(img);
         document.body.appendChild(fullscreenDiv);
-    }
-    function copytext() {
-        navigator.clipboard.readText().then(() => {
-            const target_value = document.querySelector("#id").placeholder
-            navigator.clipboard.writeText(target_value);
+
+        // Initialize panzoom on the image
+        var panzoomElement = fullscreenDiv.querySelector('.pannable-image');
+        var panzoom = panzoom(panzoomElement, {
+            contain: 'outside',
+            maxZoom: 2,
+            minZoom: 0.5,
+            beforeWheel: function (e) {
+                // Allow panning only when holding the Ctrl key
+                const shouldIgnore = !e.ctrlKey;
+                return shouldIgnore;
+            }
+        });
+
+        // Exit fullscreen when clicking outside the image
+        fullscreenDiv.addEventListener('click', function (e) {
+            if (e.target === fullscreenDiv) {
+                exitFullscreen();
+            }
         });
     }
 </script>
@@ -121,6 +155,7 @@
     .image-container {
         display: flex;
     }
+
     .image-container .image-wrapper {
         position: relative;
         width: 50%; /* Adjust this value as needed */
@@ -156,11 +191,24 @@
         justify-content: center;
         align-items: center;
         z-index: 9999;
+        cursor: zoom-out; /* Set initial cursor shape */
     }
 
     .fullscreen img {
         max-width: 100%;
         max-height: 100%;
+        cursor: zoom-out; /* Set cursor shape to zoom-out */
+        transition: transform 0.2s ease; /* Add smooth transition */
+    }
+
+    .fullscreen img.pannable-image {
+        cursor: grab;
+        cursor: -webkit-grab;
+    }
+
+    .fullscreen img.pannable-image:active {
+        cursor: grabbing;
+        cursor: -webkit-grabbing;
     }
 
     .exit-fullscreen {
@@ -183,7 +231,7 @@
         height: auto;
     }
 
-    .image-container-secondary img{
+    .image-container-secondary img {
         width: auto;
         height: auto;
     }
@@ -227,7 +275,6 @@
 </style>
 
 {% block content %}{% endblock %}
-
 
 
 </body>

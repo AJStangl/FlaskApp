@@ -41,8 +41,10 @@ def secondary_image(name, subreddit):
 
 		azure_caption = record.get('azure_caption')
 		thumbnail_caption = record.get('caption')
-		reddit_caption = f"{record.get('title')} in the style of {subreddit}"
 
+		reddit_caption = f"{record.get('title')}, {record.get('thumbnail_caption')} in the style of {subreddit}"
+
+		secondary_curation_service.num_remaining = secondary_curation_service.num_remaining - 1
 
 		return render_template('secondary.jinja2',
 							   thumbnail_path=thumbnail_path,
@@ -52,7 +54,7 @@ def secondary_image(name, subreddit):
 							   pil_thumbnail=pil_thumbnail,
 							   reddit_caption=reddit_caption,
 							   content=record,
-							   num_remaining=secondary_curation_service.get_num_remaining_records())
+							   num_remaining=secondary_curation_service.num_remaining)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
@@ -86,12 +88,12 @@ def secondary_curate():
 			smart_crop_accept=smart_crop_accept,
 			additional_captions=additional_captions,
 			relevant_tags=additional_tags)
-
 		resp = {"redirect": url_for('secondary.secondary')}
-		return resp
+		return jsonify(resp)
 	except Exception as e:
 		print(e)
-		return redirect(url_for('secondary.secondary'))
+		resp = {"redirect": url_for('secondary.secondary')}
+		return jsonify(resp)
 
 
 @secondary_bp.route('/secondary/analysis/', methods=['POST'])

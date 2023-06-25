@@ -113,6 +113,7 @@ class RedditImageCollector(threading.Thread):
 		return extant_ids
 
 	async def run_polling_for_new_images(self):
+		print("Starting Reddit-Image-Collector Poller")
 		target = 'curationPrimary'
 
 		# Target subreddit
@@ -148,12 +149,12 @@ class RedditImageCollector(threading.Thread):
 						client = self._table_adapter.get_table_client(target)
 						client.upsert_entity(row)
 						client.close()
-
 						extant_data = self._get_extant_data(target)
 		except Exception as e:
 			print(e)
 			time.sleep(1)
 			await reddit.close()
+			raise Exception("RedditImageCollector: Error in run_polling_for_new_images")
 
 
 	def wrap_async(self):
@@ -161,7 +162,8 @@ class RedditImageCollector(threading.Thread):
 			asyncio.run(self.run_polling_for_new_images())
 		except Exception as e:
 			print(e)
-			asyncio.run(self.wrap_async())
+			asyncio.run(self.run_polling_for_new_images())
 
 	def run(self):
+		print("Starting Reddit-Image-Collector Runner")
 		self.wrap_async()

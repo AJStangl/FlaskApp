@@ -17,7 +17,8 @@
                 {#  Smart Crop Thumbnail  #}
                 <div id="smart-crop">
                     <div class="image-container">
-                        <div class="image-wrapper" id="smart-wrapper" onclick="toggleFullScreen(this)">
+                        <div id="smart-indication" hidden></div>
+                        <div class="image-wrapper" id="smart-wrapper" onclick="showFullscreenImage('{{ thumbnail_path }}')">
                             <img src="{{ thumbnail_path }}" alt="Smart Crop">
                             <div class="image-label">Primary Thumbnail</div>
                         </div>
@@ -27,6 +28,7 @@
                     <div class="mb-3">
                         <button class="btn btn-primary" onclick="acceptImage('smart')">Accept</button>
                         <button class="btn btn-danger" onclick="rejectImage('smart')">Reject</button>
+                        <button id="smart-hide" class="btn btn-info" onclick="toggleHide('smart')">Revel Hidden Image</button>
                     </div>
                     <div class="mb-3">
                         <label for="smart-caption" class="form-label">Blip Caption</label>
@@ -37,7 +39,8 @@
                 {#  Azure Thumbnail      #}
                 <div id="azure-thumbnail">
                     <div class="image-container">
-                        <div class="image-wrapper" id="azure-wrapper" onclick="toggleFullScreen(this)">
+                        <div id="azure-indication" hidden></div>
+                        <div class="image-wrapper" id="azure-wrapper" onclick="showFullscreenImage('{{ azure_thumbnail }}')">
                             <img src="{{ azure_thumbnail }}" alt="Azure Crop">
                             <div class="image-label">Azure Crop</div>
                         </div>
@@ -47,6 +50,7 @@
                     <div class="mb-3">
                         <button class="btn btn-primary" onclick="acceptImage('azure')">Accept</button>
                         <button class="btn btn-danger" onclick="rejectImage('azure')">Reject</button>
+                        <button id="azure-hide" class="btn btn-info" onclick="toggleHide('azure')">Revel Hidden Image</button>
                     </div>
                     <div class="mb-3">
                         <label for="azure-caption" class="form-label">Azure Caption</label>
@@ -57,7 +61,8 @@
                 {#  Pil Thumbnail       #}
                 <div id="pil-thumbnail">
                     <div class="image-container">
-                        <div class="image-wrapper" id="pil-wrapper" onclick="toggleFullScreen(this)">
+                        <div id="pil-indication" hidden></div>
+                        <div class="image-wrapper" id="pil-wrapper" onclick="showFullscreenImage('{{ pil_thumbnail }}')">
                             <img src="{{ pil_thumbnail }}" alt="PIL Thumbnail">
                             <div class="image-label">PIL Thumbnail</div>
                         </div>
@@ -67,6 +72,7 @@
                     <div class="mb-3">
                         <button class="btn btn-primary" onclick="acceptImage('pil')">Accept</button>
                         <button class="btn btn-danger" onclick="rejectImage('pil')">Reject</button>
+                        <button id="smart-hide" class="btn btn-info" onclick="toggleHide('pil')">Revel Hidden Image</button>
                     </div>
                     <div class="mb-3">
                         <label for="reddit-caption" class="form-label">Reddit Caption</label>
@@ -168,7 +174,7 @@
         }
     </style>
     <script>
-        function sendForAnalysis() {
+    function sendForAnalysis() {
             $.ajax({
                 url: "/secondary/analysis/",
                 type: "POST",
@@ -297,6 +303,15 @@
         }
     </script>
     <script>
+
+        function toggleHide(thing) {
+            console.log("In toggleHide")
+            console.log(thing)
+            var target_id = thing + "-wrapper";
+            var inputElement = document.getElementById(target_id);
+            inputElement.hidden = !inputElement.hidden;
+            return;
+        }
         function validateInput() {
             var id = event.target.id;
             var target_id = id + "-wrapper";
@@ -304,16 +319,23 @@
             var event_accept = event.target.value;
             var inputElement = document.getElementById(target_id);
 
+            var indication_id = document.getElementById(id + "-indication");
+            indication_id.hidden = false;
+            indication_id.innerHTML = event_accept;
+
             if (event_accept === false || event_accept === "false") {
                 inputElement.classList.remove("success");
                 inputElement.classList.add("warning");
+                inputElement.hidden = true;
                 return;
             }
             if (event_accept === true || event_accept === "true") {
                 inputElement.classList.remove("warning");
                 inputElement.classList.add("success");
+                inputElement.hidden = true;
                 return;
             }
+            inputElement.hidden = true;
             inputElement.classList.remove("success");
             inputElement.classList.add("warning");
             return;

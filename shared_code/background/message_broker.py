@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import threading
+import time
 
 from azure.storage.queue import QueueServiceClient, QueueClient, BinaryBase64EncodePolicy, BinaryBase64DecodePolicy
 
@@ -69,23 +70,30 @@ class MessageBroker(threading.Thread):
 
 	def run(self):
 		try:
+			print("== Starting message broker ==")
 			queue_client, dlq_client = self.try_initialize()
 
 			while True:
 				try:
-					message = queue_client.receive_message()
-					if message is None:
+					messages = list(queue_client.receive_messages())
+					if messages is None or len(messages) == 0:
+						time.sleep(30)
 						continue
+
+					message = None
 					try:
-						print(f"Processing message: {message.content}")
-						data = json.loads(base64.b64decode(message.content))
-						self.run_caption_procedure(data)
-						queue_client.delete_message(message)
+						for message in messages:
+							print(f"Processing message: {message.content}")
+							data = json.loads(base64.b64decode(message.content))
+							self.run_caption_procedure(data)
+							time.sleep(5)
+							queue_client.delete_message(message)
 					except Exception as e:
-						print(f"Failed to process message: {message.content}")
 						print(f"Error: {str(e)}")
-						dlq_client.send_message(message.content)
-						queue_client.delete_message(message)
+						if message is not None:
+							dlq_client.send_message(message.content)
+							queue_client.delete_message(message)
+						continue
 				except Exception as e:
 					print(f"Error: {str(e)}")
 					continue
