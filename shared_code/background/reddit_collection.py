@@ -116,7 +116,7 @@ class RedditImageCollector(threading.Thread):
 		subreddit_name = "+".join(self._subs)
 		extant_data = self._get_extant_data(target)
 		# Create a Reddit instance
-		reddit = asyncpraw.Reddit(client_id=os.environ['client_id'], client_secret=os.environ['client_secret'], password=os.environ['password'], user_agent="script:%(bot_name)s:v%(bot_version)s (by /u/%(bot_author)s)", username=os.environ["username"])
+		reddit = asyncpraw.Reddit(client_id=os.environ['client_id'], client_secret=os.environ['client_secret'], password=os.environ['password'], user_agent="script:%(bot_name)s:v%(bot_version)s (by /u/%(bot_author)s)", username=os.environ["reddit_username"])
 		try:
 			subreddit = await reddit.subreddit(subreddit_name)
 
