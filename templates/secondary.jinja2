@@ -320,22 +320,22 @@
             var inputElement = document.getElementById(target_id);
 
             var indication_id = document.getElementById(id + "-indication");
-            indication_id.hidden = false;
+            {#indication_id.hidden = false;#}
             indication_id.innerHTML = event_accept;
 
             if (event_accept === false || event_accept === "false") {
                 inputElement.classList.remove("success");
                 inputElement.classList.add("warning");
-                inputElement.hidden = true;
+                {#inputElement.hidden = true;#}
                 return;
             }
             if (event_accept === true || event_accept === "true") {
                 inputElement.classList.remove("warning");
                 inputElement.classList.add("success");
-                inputElement.hidden = true;
+                {#inputElement.hidden = true;#}
                 return;
             }
-            inputElement.hidden = true;
+            {#inputElement.hidden = true;#}
             inputElement.classList.remove("success");
             inputElement.classList.add("warning");
             return;
