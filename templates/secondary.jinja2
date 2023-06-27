@@ -254,6 +254,9 @@
 
         function reject() {
             showLoadingIndication();
+            $('#pil').val(false)
+            $('#azure').val(false)
+            $('#smart').val(false)
             sendRequest("reject");
         }
 
@@ -296,6 +299,7 @@
                     tags.push(data);
                 }
             {% endfor %}
+
 
             $.ajax({
                 url: "/secondary/curate/",
