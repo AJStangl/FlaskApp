@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container">
+    <div class="container-fluid">
         <div class="container-fluid">
             <div><p>number of images remaining: {{ num_remaining }}</p></div>
         </div>
@@ -18,7 +18,8 @@
                 <div id="smart-crop">
                     <div class="image-container">
                         <div id="smart-indication" hidden></div>
-                        <div class="image-wrapper" id="smart-wrapper" onclick="showFullscreenImage('{{ thumbnail_path }}')">
+                        <div class="image-wrapper" id="smart-wrapper"
+                             onclick="showFullscreenImage('{{ thumbnail_path }}')">
                             <img src="{{ thumbnail_path }}" alt="Smart Crop">
                             <div class="image-label">Primary Thumbnail</div>
                         </div>
@@ -28,7 +29,7 @@
                     <div class="mb-3">
                         <button class="btn btn-primary" onclick="acceptImage('smart')">Accept</button>
                         <button class="btn btn-danger" onclick="rejectImage('smart')">Reject</button>
-                        <button id="smart-hide" class="btn btn-info" onclick="toggleHide('smart')">Revel Hidden Image</button>
+                        {#                        <button id="smart-hide" class="btn btn-info" onclick="toggleHide('smart')">Revel Hidden Image</button>#}
                     </div>
                     <div class="mb-3">
                         <label for="smart-caption" class="form-label">Blip Caption</label>
@@ -40,7 +41,8 @@
                 <div id="azure-thumbnail">
                     <div class="image-container">
                         <div id="azure-indication" hidden></div>
-                        <div class="image-wrapper" id="azure-wrapper" onclick="showFullscreenImage('{{ azure_thumbnail }}')">
+                        <div class="image-wrapper" id="azure-wrapper"
+                             onclick="showFullscreenImage('{{ azure_thumbnail }}')">
                             <img src="{{ azure_thumbnail }}" alt="Azure Crop">
                             <div class="image-label">Azure Crop</div>
                         </div>
@@ -50,7 +52,7 @@
                     <div class="mb-3">
                         <button class="btn btn-primary" onclick="acceptImage('azure')">Accept</button>
                         <button class="btn btn-danger" onclick="rejectImage('azure')">Reject</button>
-                        <button id="azure-hide" class="btn btn-info" onclick="toggleHide('azure')">Revel Hidden Image</button>
+                        {#                        <button id="azure-hide" class="btn btn-info" onclick="toggleHide('azure')">Revel Hidden Image</button>#}
                     </div>
                     <div class="mb-3">
                         <label for="azure-caption" class="form-label">Azure Caption</label>
@@ -62,7 +64,8 @@
                 <div id="pil-thumbnail">
                     <div class="image-container">
                         <div id="pil-indication" hidden></div>
-                        <div class="image-wrapper" id="pil-wrapper" onclick="showFullscreenImage('{{ pil_thumbnail }}')">
+                        <div class="image-wrapper" id="pil-wrapper"
+                             onclick="showFullscreenImage('{{ pil_thumbnail }}')">
                             <img src="{{ pil_thumbnail }}" alt="PIL Thumbnail">
                             <div class="image-label">PIL Thumbnail</div>
                         </div>
@@ -72,7 +75,7 @@
                     <div class="mb-3">
                         <button class="btn btn-primary" onclick="acceptImage('pil')">Accept</button>
                         <button class="btn btn-danger" onclick="rejectImage('pil')">Reject</button>
-                        <button id="smart-hide" class="btn btn-info" onclick="toggleHide('pil')">Revel Hidden Image</button>
+                        {#                        <button id="smart-hide" class="btn btn-info" onclick="toggleHide('pil')">Revel Hidden Image</button>#}
                     </div>
                     <div class="mb-3">
                         <label for="pil-caption" class="form-label">PIL Caption</label>
@@ -85,7 +88,8 @@
             <div id="overall-caption" class="container-fluid">
                 <div class="mb-3">
                     <label for="best-caption" class="form-label">Best Caption</label>
-                    <input type="text" class="form-control" id="best-caption" placeholder="{{ reddit_caption }}">
+                    <textarea type="text" class="form-control" id="best-caption"
+                              placeholder="{{ reddit_caption }}"></textarea>
                 </div>
             </div>
         </div>
@@ -93,7 +97,24 @@
             <div class="loading-icon"></div>
         </div>
     </div>
-
+    <div class="container-fluid">
+        <div class="mb-3">
+            <label for="id" class="form-label">Id</label>
+            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="subreddit" class="form-label">Subreddit</label>
+            <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="model" class="form-label">Model</label>
+            <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
+        </div>
+    </div>
     <style>
         .image-grid {
             display: grid;
@@ -174,7 +195,7 @@
         }
     </style>
     <script>
-    function sendForAnalysis() {
+        function sendForAnalysis() {
             $.ajax({
                 url: "/secondary/analysis/",
                 type: "POST",
@@ -312,6 +333,7 @@
             inputElement.hidden = !inputElement.hidden;
             return;
         }
+
         function validateInput() {
             var id = event.target.id;
             var target_id = id + "-wrapper";
