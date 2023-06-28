@@ -161,7 +161,7 @@ class AzureCaption(object):
 				entity['azure_thumbnail_path'] = azure_thumbnail_path
 
 			smart_caption = entity.get('smart_caption')
-			if smart_caption is None:
+			if smart_caption is None or smart_caption == '':
 				smart_caption = entity['caption']
 				entity['smart_caption'] = smart_caption
 

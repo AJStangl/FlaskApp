@@ -86,7 +86,7 @@ class MessageBroker(threading.Thread):
 							print(f"Processing message: {message.content}")
 							data = json.loads(base64.b64decode(message.content))
 							self.run_caption_procedure(data)
-							time.sleep(5)
+							time.sleep(15)
 							queue_client.delete_message(message)
 					except Exception as e:
 						print(f"Error: {str(e)}")
