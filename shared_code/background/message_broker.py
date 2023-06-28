@@ -77,7 +77,7 @@ class MessageBroker(threading.Thread):
 				try:
 					messages = list(queue_client.receive_messages())
 					if messages is None or len(messages) == 0:
-						time.sleep(30)
+						time.sleep(60)
 						continue
 
 					message = None

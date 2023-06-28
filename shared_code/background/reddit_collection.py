@@ -126,7 +126,7 @@ class RedditImageCollector(threading.Thread):
 					print("=== Image already acquired ===")
 					continue
 				if submission is None:
-					time.sleep(10)
+					time.sleep(60 * 5)
 					continue
 				else:
 					if submission.url.endswith(('.jpg', '.jpeg', '.png')):

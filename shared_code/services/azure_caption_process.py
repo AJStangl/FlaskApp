@@ -160,6 +160,11 @@ class AzureCaption(object):
 			if azure_thumbnail_path is not None:
 				entity['azure_thumbnail_path'] = azure_thumbnail_path
 
+			smart_caption = entity.get('smart_caption')
+			if smart_caption is None:
+				smart_caption = entity['caption']
+				entity['smart_caption'] = smart_caption
+
 			if self.__file_system.exists(thumbnail_path):
 				entity['thumbnail_path'] = thumbnail_path
 				entity['thumbnail_exists'] = True
