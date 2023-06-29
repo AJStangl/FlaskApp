@@ -62,6 +62,44 @@ def run_azure():
 		client.upsert_entity(entity)
 	client.close()
 
+
+def _create_thumbnail(target_image_id: str, parent_image_path: str, _file_system):
+	caption_data = json.loads(_file_system.read_text(f"data/caption/{image_id}.json", encoding='utf-8'))
+	smart_crop_result = caption_data.get('smartCropsResult')
+	cropping_information = smart_crop_result['values'][0]
+	out_path = f"data/image/thumbnail/{target_image_id}.jpg"
+	if _file_system.exists(out_path):
+		return out_path
+	try:
+		image_url = _file_system.url(parent_image_path)
+		original_image = Image.open(requests.get(image_url, stream=True).raw)
+		copied_image = original_image.copy()
+		original_image.close()
+
+		cropped = copied_image.crop((cropping_information['boundingBox']['x'],
+									 cropping_information['boundingBox']['y'],
+									 cropping_information['boundingBox']['x'] +
+									 cropping_information['boundingBox']['w'],
+									 cropping_information['boundingBox']['y'] +
+									 cropping_information['boundingBox']['h']))
+		copied_image.close()
+		resized = cropped.resize((512, 512), 1)
+		cropped.close()
+		img_byte_arr = io.BytesIO()
+		if resized.mode in ("RGBA", "P"):
+			resized = resized.convert("RGB")
+		resized.save(img_byte_arr, format='JPEG')
+		with _file_system.open(out_path, 'wb', encoding='utf-8') as handle:
+			handle.write(img_byte_arr.getvalue())
+		resized.close()
+		print(f'Thumbnail created for {target_image_id}')
+		return out_path
+
+	except Exception as ex:
+		print(f'Error creating thumbnail for {target_image_id}: {ex}')
+		return "/data/nope"
+
+
 def _pad(image, size, centering=(0.5, 0.5)):
 	resized = contain(image, size)
 	temp_blur = image.resize((512, 512)).filter(ImageFilter.GaussianBlur(10))
@@ -80,11 +118,12 @@ def _pad(image, size, centering=(0.5, 0.5)):
 	return out
 
 
-def _create_pil_thumbnail(_image_id: str, _file_system: AzureBlobFileSystem):
+def _create_pil_thumbnail(_image_id: str,  parent_image_path: str, _file_system: AzureBlobFileSystem):
 	try:
 		pil_thumbnail_path = f"data/image/pil_thumbnail/{_image_id}.jpg"
-		image_path = f"data/image/{_image_id}.jpg"
-		with _file_system.open(image_path, 'rb') as f:
+		# if _file_system.exists(pil_thumbnail_path):
+		# 	return pil_thumbnail_path
+		with _file_system.open(parent_image_path, 'rb') as f:
 			image = Image.open(f)
 			copied_image = image.copy()
 			image.close()
@@ -103,16 +142,16 @@ def _create_pil_thumbnail(_image_id: str, _file_system: AzureBlobFileSystem):
 
 if __name__ == '__main__':
 	from tqdm import tqdm
-
 	client = TableAdapter().get_table_client('curationSecondary')
 	file_system = AzureFileStorageAdapter('data').get_file_storage()
 	extant = [os.path.basename(x) for x in file_system.ls('data/image')]
-	entities = client.query_entities("thumbnail_exists eq true")
+	entities = client.list_entities()
 	entities = list(entities)
 	for entity in tqdm(entities, total=len(entities)):
 		image_id = entity['id']
 		if f"{image_id}.jpg" in extant:
-			entity['pil_thumbnail_path'] = _create_pil_thumbnail(image_id, file_system)
+			entity['thumbnail_path'] = _create_thumbnail(image_id, f"data/image/{image_id}.jpg", file_system)
+			entity['pil_thumbnail_path'] = _create_pil_thumbnail(image_id, f"data/image/{image_id}.jpg", file_system)
 			client.upsert_entity(entity)
 			continue
 	client.close()

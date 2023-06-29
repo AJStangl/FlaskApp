@@ -1,6 +1,12 @@
-from flask import Blueprint, render_template, request, jsonify
+import base64
+from io import BytesIO
+
+import matplotlib
+import pandas
+from flask import Blueprint, render_template, request, jsonify, send_file
 
 from shared_code.azure_storage.tables import TableAdapter
+from shared_code.scripts.grapher import GraphingService
 
 table_adapter: TableAdapter = TableAdapter()
 summary_bp = Blueprint('summary', __name__)
@@ -10,7 +16,54 @@ summary_bp = Blueprint('summary', __name__)
 def summary():
 	try:
 		tables = list(table_adapter.service.list_tables())
-		return render_template('summary.jinja2', options=[item.name for item in tables])
+		client = table_adapter.service.get_table_client("curationSecondary")
+		accepted_entities = client.query_entities("thumbnail_accept eq true")
+		accepted_entities = accepted_entities
+		data_points = []
+		for elem in accepted_entities:
+			record_smart = {
+				"id": elem["id"],
+				"type": "smart",
+				"subreddit": elem["subreddit"],
+				"title": elem["title"],
+				"path": elem["thumbnail_path"],
+				"caption": elem["smart_caption"],
+				"format_caption": f"{elem['title']}, {elem['smart_caption']}, in the style of r/{elem['subreddit']}",
+				"gpt": f"<|startoftext|><|model|>{elem['subreddit']}<|prompt|>{elem['smart_caption']}, in the style of r/{elem['subreddit']}<|text|>{elem['title']}<|endoftext|>"
+			}
+			record_pil = {
+				"id": elem["id"],
+				"type": "pil",
+				"subreddit": elem["subreddit"],
+				"title": elem["title"],
+				"path": elem["pil_thumbnail_path"],
+				"caption": elem["pil_caption"],
+				"format_caption": f"{elem['title']}, {elem['pil_caption']}, in the style of r/{elem['subreddit']}",
+				"gpt": f"<|startoftext|><|model|>{elem['subreddit']}<|prompt|>{elem['pil_caption']}, in the style of r/{elem['subreddit']}<|text|>{elem['title']}<|endoftext|>"
+			}
+			record_az = {
+				"id": elem["id"],
+				"type": "azure",
+				"subreddit": elem["subreddit"],
+				"title": elem["title"],
+				"path": elem.get("azure_thumbnail_path"),
+				"caption": elem["azure_caption"],
+				"format_caption": f"{elem['title']}, {elem['azure_caption']}, in the style of r/{elem['subreddit']}",
+				"gpt": f"<|startoftext|><|model|>{elem['subreddit']}<|prompt|>{elem['azure_caption']}, in the style of r/{elem['subreddit']}<|text|>{elem['title']}<|endoftext|>"
+			}
+			data_points.append(record_smart)
+			data_points.append(record_pil)
+			data_points.append(record_az)
+
+		df = pandas.DataFrame(data=data_points)
+
+		html = df.to_html()
+		image = BytesIO()
+		GraphingService().plot_curated_data(accepted_entities).figure.savefig(image, format='png')
+		image.seek(0)
+		client.close()
+		plot_url = base64.b64encode(image.getvalue()).decode('utf8')
+		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url, table_html=html)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
@@ -39,6 +92,7 @@ def data():
 		"headers": headers,
 		"data": values
 	})
+
 
 
 

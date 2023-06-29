@@ -73,29 +73,23 @@ class MessageBroker(threading.Thread):
 			print("== Starting message broker ==")
 			queue_client, dlq_client = self.try_initialize()
 
+			message = None
 			while True:
 				try:
-					messages = list(queue_client.receive_messages())
-					if messages is None or len(messages) == 0:
-						time.sleep(60)
+					message = queue_client.receive_message()
+					if message is None:
+						time.sleep(5)
 						continue
-
-					message = None
-					try:
-						for message in messages:
-							print(f"Processing message: {message.content}")
-							data = json.loads(base64.b64decode(message.content))
-							self.run_caption_procedure(data)
-							time.sleep(15)
-							queue_client.delete_message(message)
-					except Exception as e:
-						print(f"Error: {str(e)}")
-						if message is not None:
-							dlq_client.send_message(message.content)
-							queue_client.delete_message(message)
-						continue
+					print(f"Processing message: {message.content}")
+					data = json.loads(base64.b64decode(message.content))
+					self.run_caption_procedure(data)
+					time.sleep(15)
+					queue_client.delete_message(message)
 				except Exception as e:
 					print(f"Error: {str(e)}")
+					if message is not None:
+						dlq_client.send_message(message.content)
+						queue_client.delete_message(message)
 					continue
 
 		except Exception as e:
