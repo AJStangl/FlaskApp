@@ -18,7 +18,7 @@ def summary():
 		tables = list(table_adapter.service.list_tables())
 		client = table_adapter.service.get_table_client("curationSecondary")
 		accepted_entities = client.query_entities("thumbnail_accept eq true")
-		accepted_entities = accepted_entities
+		accepted_entities = list(accepted_entities)
 		data_points = []
 		for elem in accepted_entities:
 			try:
