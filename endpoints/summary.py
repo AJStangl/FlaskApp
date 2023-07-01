@@ -91,7 +91,6 @@ def sample():
 		accepted_data = list(client.list_entities(select=["path", "format_caption", "RowKey", "PartitionKey", "type"]))
 
 		df = pandas.DataFrame(data=accepted_data)
-		df["path"] = df.path.apply(lambda x: "https://ajdevreddit.blob.core.windows.net/" + x)
 
 		records = df.to_dict(orient='records')
 		total_records = len(records)
@@ -111,7 +110,8 @@ def sample():
 			for elem in sample_dict:
 				data_element = {
 					"text": elem["format_caption"],
-					"image": elem["path"]
+					"path": elem["path"],
+					"name": f"{elem['type']}-{elem['path'].split('/')[-1]}"
 				}
 				random_sample_records.append(data_element)
 
