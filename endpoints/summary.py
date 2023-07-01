@@ -111,7 +111,7 @@ def sample():
 				data_element = {
 					"text": elem["format_caption"],
 					"path": elem["path"],
-					"name": f"{elem['type']}-{elem['path'].split('/')[-1]}"
+					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}"
 				}
 				random_sample_records.append(data_element)
 
