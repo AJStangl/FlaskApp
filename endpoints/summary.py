@@ -71,21 +71,19 @@ def gpt():
 	client = table_adapter.service.get_table_client("training")
 	try:
 		gpt_dict_list = list(client.list_entities(select=['GPT']))
-		io = BytesIO()
-		# with open("training.txt", "w", encoding="UTF-8") as out:
-		for item in gpt_dict_list:
-			line = item["GPT"]
-			encoded = line.encode("UTF-8")
-			io.write(encoded)
-
-		io.seek(0)
-		return send_file(io, mimetype="text")
+		with BytesIO() as io:
+			for item in gpt_dict_list:
+				line = item["GPT"]
+				encoded = line.encode("UTF-8")
+				io.write(encoded)
+				io.seek(0)
+				return send_file(io, mimetype="text")
 	finally:
 		client.close()
 
 
-@summary_bp.route('/summary/sample', methods=['GET'])
-def sample():
+@summary_bp.route('/summary/diffusion', methods=['GET'])
+def diffusion():
 	client = table_adapter.service.get_table_client("training")
 	try:
 		accepted_data = list(client.list_entities(select=["path", "format_caption", "RowKey", "PartitionKey", "type"]))
