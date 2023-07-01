@@ -1,15 +1,13 @@
 import pandas
 from azure.data.tables import TableEntity
 
-from shared_code.azure_storage.tables import TableAdapter
-from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 
-
-class GraphingService(object):
+class GraphingService:
 	def __init__(self):
 		pass
 
-	def plot_curated_data(self, accepted_entities):
+	@staticmethod
+	def plot_curated_data(accepted_entities):
 		try:
 
 			data = []
@@ -22,7 +20,7 @@ class GraphingService(object):
 
 			df = pandas.DataFrame(data)
 
-			group = df[["id", "model", "subreddit"]].groupby(["subreddit"]).count().sort_values(by="id", ascending=False)
+			group = df[["RowKey", "PartitionKey"]].groupby(["PartitionKey"]).count().sort_values(by="RowKey", ascending=False)
 
 			plot_1 = group.plot.bar(figsize=(20, 10), title="Models with most images", legend=True)
 			return plot_1

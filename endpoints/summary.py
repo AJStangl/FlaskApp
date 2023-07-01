@@ -1,4 +1,5 @@
 import base64
+import random
 from io import BytesIO
 
 import matplotlib
@@ -9,6 +10,8 @@ from shared_code.azure_storage.tables import TableAdapter
 from shared_code.scripts.grapher import GraphingService
 
 table_adapter: TableAdapter = TableAdapter()
+from shared_code.schemas.table_schema import TableFactory
+
 summary_bp = Blueprint('summary', __name__)
 
 
@@ -16,60 +19,18 @@ summary_bp = Blueprint('summary', __name__)
 def summary():
 	try:
 		tables = list(table_adapter.service.list_tables())
-		client = table_adapter.service.get_table_client("curationSecondary")
-		accepted_entities = client.query_entities("thumbnail_accept eq true")
+		client = table_adapter.service.get_table_client("training")
+		accepted_entities = client.list_entities()
 		accepted_entities = list(accepted_entities)
 		data_points = []
 		for elem in accepted_entities:
-			try:
-				record_smart = {
-					"id": elem["id"],
-					"type": "smart",
-					"subreddit": elem["subreddit"],
-					"title": elem["title"],
-					"path": elem["thumbnail_path"],
-					"caption": elem["smart_caption"],
-					"format_caption": f"{elem['title']}, {elem['smart_caption']}, in the style of r/{elem['subreddit']}",
-					"gpt": f"<|startoftext|><|model|>{elem['subreddit']}<|prompt|>{elem['smart_caption']}, in the style of r/{elem['subreddit']}<|text|>{elem['title']}<|endoftext|>"
-				}
-				data_points.append(record_smart)
-			except Exception as e:
-				continue
-			try:
-				record_pil = {
-					"id": elem["id"],
-					"type": "pil",
-					"subreddit": elem["subreddit"],
-					"title": elem["title"],
-					"path": elem["pil_thumbnail_path"],
-					"caption": elem["pil_caption"],
-					"format_caption": f"{elem['title']}, {elem['pil_caption']}, in the style of r/{elem['subreddit']}",
-					"gpt": f"<|startoftext|><|model|>{elem['subreddit']}<|prompt|>{elem['pil_caption']}, in the style of r/{elem['subreddit']}<|text|>{elem['title']}<|endoftext|>"
-				}
-				data_points.append(record_pil)
-			except Exception as e:
-				continue
-
-			try:
-				record_az = {
-					"id": elem["id"],
-					"type": "azure",
-					"subreddit": elem["subreddit"],
-					"title": elem["title"],
-					"path": elem["azure_thumbnail_path"],
-					"caption": elem["azure_caption"],
-					"format_caption": f"{elem['title']}, {elem['azure_caption']}, in the style of r/{elem['subreddit']}",
-					"gpt": f"<|startoftext|><|subreddit|>{elem['subreddit']}<|title|>{elem['title']}<|prompt|>{elem['title']}, {elem['azure_caption']}, in the style of r/{elem['subreddit']}<|endoftext|>"
-				}
-				data_points.append(record_az)
-			except Exception as e:
-				continue
+			data_points.append(dict(elem))
 
 		df = pandas.DataFrame(data=data_points)
 
 		html = df.to_html()
 		image = BytesIO()
-		GraphingService().plot_curated_data(accepted_entities).figure.savefig(image, format='png')
+		GraphingService.plot_curated_data(accepted_entities).figure.savefig(image, format='png')
 		image.seek(0)
 		client.close()
 		plot_url = base64.b64encode(image.getvalue()).decode('utf8')
@@ -103,3 +64,62 @@ def data():
 		"headers": headers,
 		"data": values
 	})
+
+
+@summary_bp.route('/summary/gpt', methods=['GET'])
+def gpt():
+	client = table_adapter.service.get_table_client("training")
+	try:
+		gpt_dict_list = list(client.list_entities(select=['GPT']))
+		io = BytesIO()
+		# with open("training.txt", "w", encoding="UTF-8") as out:
+		for item in gpt_dict_list:
+			line = item["GPT"]
+			encoded = line.encode("UTF-8")
+			io.write(encoded)
+
+		io.seek(0)
+		return send_file(io, mimetype="text")
+	finally:
+		client.close()
+
+
+@summary_bp.route('/summary/sample', methods=['GET'])
+def sample():
+	client = table_adapter.service.get_table_client("training")
+	try:
+		accepted_data = list(client.list_entities(select=["path", "format_caption", "RowKey", "PartitionKey", "type"]))
+
+		df = pandas.DataFrame(data=accepted_data)
+		df["path"] = df.path.apply(lambda x: "https://ajdevreddit.blob.core.windows.net/" + x)
+
+		records = df.to_dict(orient='records')
+		total_records = len(records)
+
+		random_sample_records = []
+
+		for group in df.groupby('PartitionKey', group_keys=False):
+			sub = group[0]
+			data_values = group[1]
+			population = len(data_values) / total_records
+			number_to_take = round(population * 1000)
+			if number_to_take == 0:
+				number_to_take = 1
+
+			sampled_group = data_values.sample(number_to_take)
+			sample_dict = sampled_group.to_dict(orient='records')
+			for elem in sample_dict:
+				data_element = {
+					"text": elem["format_caption"],
+					"image": elem["path"]
+				}
+				random_sample_records.append(data_element)
+
+		random.shuffle(random_sample_records)
+		out = pandas.DataFrame(data=random_sample_records).to_json(orient='records', lines=True).encode("UTF-8")
+		io = BytesIO(out)
+		io.seek(0)
+		return send_file(io, mimetype="application/jsonlines+json")
+	finally:
+		client.close()
+

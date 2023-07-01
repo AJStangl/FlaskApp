@@ -3,10 +3,13 @@ from flask import Blueprint, render_template, redirect, url_for, request, jsonif
 from shared_code.background.message_broker import MessageBroker
 from shared_code.services.primary_curation_service import PrimaryCurationService
 from shared_code.services.secondary_curation_service import SecondaryCurationService
+from shared_code.services.training_service import TrainingService
 
 secondary_bp = Blueprint('secondary', __name__)
 
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curationSecondary")
+
+training_service: TrainingService = TrainingService()
 
 message_broker: MessageBroker = MessageBroker()
 
@@ -45,7 +48,7 @@ def secondary_image(name, subreddit):
 
 		pil_caption = record.get('pil_caption')
 
-		reddit_caption = f"{record.get('title')}, {thumbnail_caption} in the style of {subreddit}"
+		reddit_caption = f"{record.get('title')}, {thumbnail_caption}, in the style of r/{subreddit}"
 
 		secondary_curation_service.num_remaining = secondary_curation_service.num_remaining - 1
 
@@ -92,6 +95,10 @@ def secondary_curate():
 			smart_crop_accept=smart_crop_accept,
 			additional_captions=additional_captions,
 			relevant_tags=additional_tags)
+
+		if action == 'accept':
+			training_service.upsert_data_record(subreddit=subreddit, submission_id=image_id)
+
 		resp = {"redirect": url_for('secondary.secondary')}
 		return jsonify(resp)
 	except Exception as e:

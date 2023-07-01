@@ -63,8 +63,7 @@ class SecondaryCurationService(BaseService):
 	def get_num_remaining_records(self) -> int:
 		client = self.get_table_client()
 		try:
-			# old_query = 'thumbnail_curated eq false'
-			query = "(pil_crop_accept eq false and azure_crop_accept eq false and smart_crop_accept eq false and thumbnail_curated eq true and thumbnail_accept eq true) or (thumbnail_curated eq false and thumbnail_accept eq false)"
+			query = 'thumbnail_accept eq false and thumbnail_curated eq false'
 			return len(list(client.query_entities(query, select=["id"])))
 		finally:
 			client.close()
@@ -137,7 +136,6 @@ class SecondaryCurationService(BaseService):
 				entity['smart_crop_accept'] = smart_crop_accept
 				entity['additional_captions'] = json.dumps(additional_captions)
 				entity['tags'] = json.dumps(relevant_tags)
-				print(json.dumps(entity, indent=4))
 				client.update_entity(entity=entity)
 				return None
 		finally:
@@ -162,12 +160,7 @@ class SecondaryCurationService(BaseService):
 	def get_next_record(self):
 		client = self.get_table_client()
 		try:
-			is_curated = 'thumbnail_curated eq false'
-			is_accepted = 'thumbnail_accept eq false'
-			is_pil_accepted = 'pil_crop_accept eq false'
-			is_azure_accepted = 'azure_crop_accept eq false'
-			is_smart_accepted = 'smart_crop_accept eq false'
-			query = "(pil_crop_accept eq false and azure_crop_accept eq false and smart_crop_accept eq false and thumbnail_curated eq true and thumbnail_accept eq true) or (thumbnail_curated eq false and thumbnail_accept eq false)"
+			query = "thumbnail_curated eq false and thumbnail_accept eq false"
 			entity = client.query_entities(query)
 			return next(entity)
 		finally:

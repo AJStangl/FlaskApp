@@ -1,5 +1,4 @@
 from shared_code.azure_storage.tables import TableAdapter
-from shared_code.schemas.table_schema import PrimaryCurationEntity
 from shared_code.services.base_curation_service import BaseService
 
 
@@ -21,7 +20,7 @@ class PrimaryCurationService(BaseService):
 	def get_image_url(self, record_id: str, subreddit: str) -> str:
 		client = self.get_table_client()
 		try:
-			entity: PrimaryCurationEntity = client.get_entity(partition_key=subreddit, row_key=record_id)
+			entity = client.get_entity(partition_key=subreddit, row_key=record_id)
 			return "https://ajdevreddit.blob.core.windows.net/" + entity['path']
 		finally:
 			client.close()
