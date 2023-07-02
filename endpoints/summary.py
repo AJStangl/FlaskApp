@@ -10,7 +10,6 @@ from shared_code.azure_storage.tables import TableAdapter
 from shared_code.scripts.grapher import GraphingService
 
 table_adapter: TableAdapter = TableAdapter()
-from shared_code.schemas.table_schema import TableFactory
 
 summary_bp = Blueprint('summary', __name__)
 
@@ -71,13 +70,13 @@ def gpt():
 	client = table_adapter.service.get_table_client("training")
 	try:
 		gpt_dict_list = list(client.list_entities(select=['GPT']))
-		with BytesIO() as io:
-			for item in gpt_dict_list:
-				line = item["GPT"]
-				encoded = line.encode("UTF-8")
-				io.write(encoded)
-				io.seek(0)
-				return send_file(io, mimetype="text")
+		io = BytesIO()
+		for item in gpt_dict_list:
+			line = item["GPT"]
+			encoded = line.encode("UTF-8")
+			io.write(encoded)
+		io.seek(0)
+		return send_file(io, mimetype="text")
 	finally:
 		client.close()
 
