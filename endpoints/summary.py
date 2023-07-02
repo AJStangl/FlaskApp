@@ -34,8 +34,7 @@ def summary():
 		image.seek(0)
 		client.close()
 		plot_url = base64.b64encode(image.getvalue()).decode('utf8')
-		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url,
-							   table_html=html)
+		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url, table_html=None)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
