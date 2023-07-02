@@ -151,7 +151,7 @@ class RedditImageCollector(threading.Thread):
 			print(e)
 			time.sleep(1)
 			await reddit.close()
-			raise Exception("=== RedditImageCollector: Error in run_polling_for_new_images ===")
+			asyncio.run(self.run_polling_for_new_images())
 
 	def wrap_async(self):
 		try:

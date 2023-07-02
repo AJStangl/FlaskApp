@@ -69,7 +69,7 @@ def data():
 def gpt():
 	client = table_adapter.service.get_table_client("training")
 	try:
-		gpt_dict_list = list(client.list_entities(select=['GPT']))
+		gpt_dict_list = list(client.query_entities(query_filter="PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'", select=['GPT']))
 		io = BytesIO()
 		for item in gpt_dict_list:
 			line = item["GPT"]
@@ -85,7 +85,7 @@ def gpt():
 def diffusion():
 	client = table_adapter.service.get_table_client("training")
 	try:
-		accepted_data = list(client.list_entities(select=["path", "format_caption", "RowKey", "PartitionKey", "type"]))
+		accepted_data = list(client.query_entities(query_filter="PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'", select=["path", "format_caption", "RowKey", "PartitionKey", "type"]))
 
 		df = pandas.DataFrame(data=accepted_data)
 
