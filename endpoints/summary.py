@@ -1,4 +1,5 @@
 import base64
+import json
 import random
 from io import BytesIO
 
@@ -69,7 +70,9 @@ def data():
 def gpt():
 	client = table_adapter.service.get_table_client("training")
 	try:
-		gpt_dict_list = list(client.query_entities(query_filter="PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'", select=['GPT']))
+		gpt_dict_list = list(client.query_entities(
+			query_filter="PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'",
+			select=['GPT']))
 		io = BytesIO()
 		for item in gpt_dict_list:
 			line = item["GPT"]
@@ -81,11 +84,18 @@ def gpt():
 		client.close()
 
 
-@summary_bp.route('/summary/diffusion', methods=['GET'])
-def diffusion():
+@summary_bp.route('/summary/diffusion/<sub>', methods=['GET'])
+def diffusion(sub='all'):
 	client = table_adapter.service.get_table_client("training")
 	try:
-		accepted_data = list(client.query_entities(query_filter="PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'", select=["path", "format_caption", "RowKey", "PartitionKey", "type"]))
+		if sub == 'all':
+			query_filter = "PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'"
+		else:
+			query_filter = f"PartitionKey eq '{sub}'"
+
+		accepted_data = list(client.query_entities(query_filter=query_filter,
+												   select=["path", "format_caption", "RowKey", "PartitionKey", "type",
+														   "training_count"]))
 
 		df = pandas.DataFrame(data=accepted_data)
 
@@ -102,7 +112,11 @@ def diffusion():
 			if number_to_take == 0:
 				number_to_take = 1
 
-			sampled_group = data_values.sample(number_to_take)
+			if len(data_values) < number_to_take:
+				sampled_group = data_values.sample(len(data_values))
+			else:
+				sampled_group = data_values.sample(number_to_take)
+
 			sample_dict = sampled_group.to_dict(orient='records')
 			for elem in sample_dict:
 				data_element = {
@@ -111,6 +125,10 @@ def diffusion():
 					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}"
 				}
 				random_sample_records.append(data_element)
+				entity = client.get_entity(partition_key=sub, row_key=elem["RowKey"])
+				current_count = entity['training_count']
+				current_count += 1
+				client.upsert_entity(entity)
 
 		random.shuffle(random_sample_records)
 		out = pandas.DataFrame(data=random_sample_records).to_json(orient='records', lines=True).encode("UTF-8")
@@ -120,3 +138,19 @@ def diffusion():
 	finally:
 		client.close()
 
+
+@summary_bp.route('/summary/list-subs', methods=['GET'])
+def list_subs():
+	def np_encoder(object):
+		import numpy as np
+		if isinstance(object, np.generic):
+			return object.item()
+	client = table_adapter.service.get_table_client("training")
+	try:
+		list_of_subs = list(client.list_entities(select=['PartitionKey']))
+		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
+		io = BytesIO(json.dumps(foo, default=np_encoder).encode("UTF-8"))
+		io.seek(0)
+		return send_file(io, mimetype="application/json")
+	finally:
+		client.close()
