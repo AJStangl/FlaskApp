@@ -17,4 +17,6 @@ def select_endpoint():
 		return redirect(url_for('secondary.secondary'))
 	elif endpoint == 'summary':
 		return redirect(url_for('summary.summary'))
+	elif endpoint == 'generations':
+		return redirect(url_for('generations.generations'))
 	return redirect('/')
