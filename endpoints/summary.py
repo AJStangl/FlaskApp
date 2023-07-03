@@ -88,7 +88,7 @@ def diffusion(sub='all'):
 	client = table_adapter.service.get_table_client("training")
 	try:
 		if sub == 'all':
-			query_filter = "PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'"
+			query_filter = "training_count eq 0"
 		else:
 			query_filter = f"PartitionKey eq '{sub}'"
 
