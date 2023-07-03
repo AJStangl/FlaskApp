@@ -127,6 +127,7 @@ def diffusion(sub='all'):
 				entity = client.get_entity(partition_key=sub, row_key=elem["RowKey"])
 				current_count = entity['training_count']
 				current_count += 1
+				entity['training_count'] = current_count
 				client.upsert_entity(entity)
 
 		random.shuffle(random_sample_records)
