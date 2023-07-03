@@ -23,8 +23,8 @@ message_broker: MessageBroker = MessageBroker()
 procs.append(message_broker)
 
 # Initialize background worker
-collector: RedditImageCollector = RedditImageCollector()
-procs.append(collector)
+# collector: RedditImageCollector = RedditImageCollector()
+# procs.append(collector)
 
 [item.start() for item in procs]
 
