@@ -128,7 +128,7 @@ def diffusion(sub='all', count=0):
 				current_count = entity['training_count']
 				current_count += 1
 				entity['training_count'] = current_count
-				# client.upsert_entity(entity)
+				client.upsert_entity(entity)
 
 		random.shuffle(random_sample_records)
 		out = pandas.DataFrame(data=random_sample_records).to_json(orient='records', lines=True).encode("UTF-8")
