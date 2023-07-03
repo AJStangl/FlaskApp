@@ -10,12 +10,12 @@ from azure.storage.queue import QueueServiceClient, QueueClient, BinaryBase64Enc
 from shared_code.services.azure_caption_process import AzureCaption
 from shared_code.services.primary_curation_service import PrimaryCurationService
 from shared_code.services.secondary_curation_service import SecondaryCurationService
-from shared_code.scripts.blip_captioning import BlipCaption
+# from shared_code.scripts.blip_captioning import BlipCaption
 
 primary_curation_service: PrimaryCurationService = PrimaryCurationService("curationPrimary")
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curationSecondary")
 azure_caption: AzureCaption = AzureCaption()
-blip_captioning: BlipCaption = BlipCaption()
+# blip_captioning: BlipCaption = BlipCaption()
 
 
 
@@ -68,7 +68,7 @@ class MessageBroker(threading.Thread):
 		record = primary_curation_service.get_record_by_id(record_id=image_id, subreddit=subreddit)
 		secondary_curation_service.add_new_entry(record)
 		azure_caption.run_analysis(image_id=image_id)
-		blip_captioning.caption_image(image_id=image_id)
+		# blip_captioning.caption_image(image_id=image_id)
 		return None
 
 	def run(self):
