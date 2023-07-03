@@ -83,14 +83,14 @@ def gpt():
 		client.close()
 
 
-@summary_bp.route('/summary/diffusion/<sub>', methods=['GET'])
-def diffusion(sub='all'):
+@summary_bp.route('/summary/diffusion/<sub>/<count>', methods=['GET'])
+def diffusion(sub='all', count=0):
 	client = table_adapter.service.get_table_client("training")
 	try:
 		if sub == 'all':
-			query_filter = "training_count eq 0"
+			query_filter = f"training_count eq {count}"
 		else:
-			query_filter = f"PartitionKey eq '{sub}'"
+			query_filter = f"PartitionKey eq '{sub}' and training_count eq {count}"
 
 		accepted_data = list(client.query_entities(query_filter=query_filter,
 												   select=["path", "format_caption", "RowKey", "PartitionKey", "type",
@@ -128,7 +128,7 @@ def diffusion(sub='all'):
 				current_count = entity['training_count']
 				current_count += 1
 				entity['training_count'] = current_count
-				client.upsert_entity(entity)
+				# client.upsert_entity(entity)
 
 		random.shuffle(random_sample_records)
 		out = pandas.DataFrame(data=random_sample_records).to_json(orient='records', lines=True).encode("UTF-8")
@@ -150,6 +150,41 @@ def list_subs():
 		list_of_subs = list(client.list_entities(select=['PartitionKey']))
 		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
 		io = BytesIO(json.dumps(foo, default=np_encoder).encode("UTF-8"))
+		io.seek(0)
+		return send_file(io, mimetype="application/json")
+	finally:
+		client.close()
+
+
+@summary_bp.route('/summary/list-stats', methods=['GET'])
+def list_stats():
+	from tqdm import tqdm
+	def np_encoder(object):
+		import numpy as np
+		if isinstance(object, np.generic):
+			return object.item()
+	client = table_adapter.service.get_table_client("training")
+	records = []
+
+	try:
+		list_of_subs = list(client.list_entities(select=['PartitionKey']))
+		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
+		for elem in tqdm(foo, desc="Subs", total=len(foo.keys())):
+			record = {
+				"SubName": elem,
+				"Trained": 0,
+				"Untrained": 0,
+				"Total": foo[elem]
+			}
+			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"], query_filter=f"PartitionKey eq '{elem}'"))
+			for item in tqdm(listing, desc=elem, total=len(listing)):
+				if item['training_count'] == 0:
+					record["Untrained"] += 1
+				else:
+					record["Trained"] += item['training_count']
+			records.append(record)
+
+		io = BytesIO(json.dumps(records, default=np_encoder).encode("UTF-8"))
 		io.seek(0)
 		return send_file(io, mimetype="application/json")
 	finally:
