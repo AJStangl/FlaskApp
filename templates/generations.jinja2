@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container">
+    <div class="container-fluid">
         <h1>Generations Table</h1>
-        <table>
+        <table class="gr">
             <thead>
             <tr>
                 <th>PartitionKey</th>
@@ -19,23 +19,25 @@
                 <tr>
                     <td>{{ item.PartitionKey }}</td>
                     <td>{{ item.Rowkey }}</td>
-                    <td><img src="{{ item.path }}" alt="Image"></td>
+                    <td><img style="display: table" src="{{ item.path }}" alt="Image"></td>
                     <td>{{ item.prompt }}</td>
                     <td>{{ item.style }}</td>
                     <td>{{ item.title }}</td>
                     <td>
-                        <button class="btn btn-primary" onclick="sendAction('{{ item.path}}, {{item.title }}')">SendToReddit</button>
+                        <div class="container-fluid">
+                            <button class="btn btn-primary" onclick="sendAction('{{ item.path }}, {{ item.title }}')">
+                                SendToReddit
+                            </button>
+                            <div>
+                                <label for="subreddit">Subreddit:</label>
+                                <input class="form-control" type="text" id="subreddit" name="subreddit">
+                            </div>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
-    <div>
-         <div>
-              <label for="subreddit">Subreddit:</label>
-              <input class="form-control" type="text" id="subreddit" name="subreddit">
-          </div>
-    </div>
     </div>
     <script>
         function sendAction(path, title) {
@@ -51,6 +53,7 @@
                     'Content-Type': 'application/json'
                 }
             }).then((response) => {
+                alert(response)
                 console.log('Action sent to Flask backend!');
             }).catch((error) => {
                 console.error('Error sending action to Flask backend:', error);
