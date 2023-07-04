@@ -30,6 +30,8 @@ def generations():
 		return render_template('generations.jinja2', data=data, subs=list(subs.keys()))
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
+	finally:
+		client.close()
 
 
 @generations_bp.route('/generations/send_to_reddit', methods=['POST'])
