@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container-fluid">
+    <div class="container">
         <h1>Generations Table</h1>
         <table class="gr">
             <thead>
             <tr>
-                <th>PartitionKey</th>
-                <th>Row key</th>
                 <th>path</th>
                 <th>prompt</th>
                 <th>style</th>
@@ -17,8 +15,6 @@
             <tbody>
             {% for item in data %}
                 <tr>
-                    <td>{{ item.PartitionKey }}</td>
-                    <td>{{ item.Rowkey }}</td>
                     <td><img style="display: table" src="{{ item.path }}" alt="Image"></td>
                     <td>{{ item.prompt }}</td>
                     <td>{{ item.style }}</td>
@@ -53,7 +49,7 @@
                     'Content-Type': 'application/json'
                 }
             }).then((response) => {
-                alert(response)
+                alert(response.json())
                 console.log('Action sent to Flask backend!');
             }).catch((error) => {
                 console.error('Error sending action to Flask backend:', error);

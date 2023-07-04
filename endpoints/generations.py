@@ -1,11 +1,6 @@
-import base64
 import json
-import random
-from io import BytesIO
 
-import matplotlib
-import pandas
-from flask import Blueprint, render_template, request, jsonify, send_file
+from flask import Blueprint, render_template, request, jsonify
 
 from shared_code.azure_storage.tables import TableAdapter
 
@@ -26,6 +21,7 @@ def generations():
 				break
 			data.append(dict(elem))
 			max_rows -= 1
+
 		return render_template('generations.jinja2', data=data)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)

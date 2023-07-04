@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_bootstrap import Bootstrap
 
+from endpoints.api import api_bp
 from endpoints.generations import generations_bp
 from endpoints.index import index_bp
 from endpoints.primary import primary_bp
@@ -16,6 +17,7 @@ app.register_blueprint(primary_bp)
 app.register_blueprint(secondary_bp)
 app.register_blueprint(summary_bp)
 app.register_blueprint(generations_bp)
+app.register_blueprint(api_bp)
 Bootstrap(app)
 
 procs = []
