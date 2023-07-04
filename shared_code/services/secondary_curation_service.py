@@ -1,10 +1,15 @@
 import json
+import logging
 
 from adlfs import AzureBlobFileSystem
 
 from shared_code.azure_storage.tables import TableAdapter
 from shared_code.services.base_curation_service import BaseService
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
 
 
 # noinspection PyBroadException
@@ -75,17 +80,17 @@ class SecondaryCurationService(BaseService):
 			try:
 				thumbnail_path = self._file_system.url(entity['thumbnail_path'])
 			except Exception as e:
-				print(e)
+				logger.exception(e)
 				thumbnail_path = "/data/nope/"
 			try:
 				azure_thumbnail = self._file_system.url(entity['azure_thumbnail_path'])
 			except Exception as e:
-				print(e)
+				logger.exception(e)
 				azure_thumbnail = "/data/nope/"
 			try:
 				pil_thumbnail = self._file_system.url(entity['pil_thumbnail_path'])
 			except Exception as e:
-				print(e)
+				logger.exception(e)
 				pil_thumbnail = "/data/nope/"
 			return thumbnail_path, azure_thumbnail, pil_thumbnail
 		finally:

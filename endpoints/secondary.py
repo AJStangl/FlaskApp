@@ -1,3 +1,5 @@
+import logging
+
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 
 from shared_code.background.message_broker import MessageBroker
@@ -101,7 +103,7 @@ def secondary_curate():
 		resp = {"redirect": url_for('secondary.secondary')}
 		return jsonify(resp)
 	except Exception as e:
-		print(e)
+		logging.exception(e)
 		resp = {"redirect": url_for('secondary.secondary')}
 		return jsonify(resp)
 

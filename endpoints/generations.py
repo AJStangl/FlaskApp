@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import praw
 from flask import Blueprint, render_template, request, jsonify, url_for
@@ -10,6 +11,8 @@ from shared_code.azure_storage.tables import TableAdapter
 table_adapter: TableAdapter = TableAdapter()
 
 generations_bp = Blueprint('generations', __name__)
+
+logger = logging.getLogger(__name__)
 
 
 @generations_bp.route('/generations/')
@@ -54,7 +57,7 @@ def send_to_reddit():
 	with open("temp.png", 'wb') as f:
 		f.write(image_data.read())
 		submission = sub_instance.submit_image(f"{title}", "temp.png", nsfw=False)
-		print(submission)
+		logger.info(submission)
 
 	return jsonify({
 		"success": True,

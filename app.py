@@ -9,8 +9,16 @@ from endpoints.primary import primary_bp
 from endpoints.secondary import secondary_bp
 from endpoints.summary import summary_bp
 from shared_code.background.message_broker import MessageBroker
+import logging
 
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.getLogger("diffusers").setLevel(logging.DEBUG)
+logging.getLogger("azure.storage").setLevel(logging.DEBUG)
+logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
+
 
 # Register blueprints
 app.register_blueprint(index_bp)
@@ -28,9 +36,6 @@ procs = []
 message_broker: MessageBroker = MessageBroker()
 procs.append(message_broker)
 
-# Initialize background worker
-# collector: RedditImageCollector = RedditImageCollector()
-# procs.append(collector)
 
 [item.start() for item in procs]
 

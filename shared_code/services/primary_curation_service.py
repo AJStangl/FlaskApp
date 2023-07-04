@@ -1,5 +1,9 @@
 from shared_code.azure_storage.tables import TableAdapter
 from shared_code.services.base_curation_service import BaseService
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
 
 
 class PrimaryCurationService(BaseService):
@@ -47,7 +51,7 @@ class PrimaryCurationService(BaseService):
 	def get_record_by_id(self, subreddit: str, record_id: str) -> dict:
 		client = self.get_table_client()
 		try:
-			entity: PrimaryCurationEntity = client.get_entity(partition_key=subreddit, row_key=record_id)
+			entity = client.get_entity(partition_key=subreddit, row_key=record_id)
 			return entity
 		finally:
 			client.close()

@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import os
 import sys
 import threading
@@ -16,6 +17,12 @@ primary_curation_service: PrimaryCurationService = PrimaryCurationService("curat
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curationSecondary")
 azure_caption: AzureCaption = AzureCaption()
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+logging.getLogger("diffusers").setLevel(logging.WARNING)
+logging.getLogger("azure.storage").setLevel(logging.WARNING)
+logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class MessageBroker(threading.Thread):
@@ -55,7 +62,7 @@ class MessageBroker(threading.Thread):
 			dumped = json.dumps(message).encode('utf-8')
 			client.send_message(client.message_encode_policy.encode(content=dumped))
 		except Exception as e:
-			print(f"Error: {str(e)}")
+			logger.exception(f"Error: {str(e)}")
 			return
 		finally:
 			client.close()
@@ -73,7 +80,7 @@ class MessageBroker(threading.Thread):
 
 	def run(self):
 		try:
-			print("== Starting message broker ==")
+			logger.info("== Starting message broker ==")
 			queue_client, dlq_client = self.try_initialize()
 
 			message = None
@@ -83,20 +90,20 @@ class MessageBroker(threading.Thread):
 					if message is None:
 						time.sleep(15)
 						continue
-					print(f"Processing message: {message.content}")
+					logger.info(f"Processing message: {message.content}")
 					data = json.loads(base64.b64decode(message.content))
 					self.run_caption_procedure(data)
 					time.sleep(15)
 					queue_client.delete_message(message)
 				except Exception as e:
-					print(f"Error: {str(e)}")
+					logger.exception(f"Error: {str(e)}")
 					if message is not None:
 						dlq_client.send_message(message.content)
 						queue_client.delete_message(message)
 					continue
 
 		except Exception as e:
-			print(f"Error: {str(e)}")
+			logger.info(f"Error: {str(e)}")
 
 	def start(self):
 		self.worker_thread.start()

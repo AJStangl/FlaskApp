@@ -1,7 +1,12 @@
+import logging
+
 from adlfs import AzureBlobFileSystem
 from shared_code.azure_storage.tables import TableAdapter
 from shared_code.schemas.table_schema import TableFactory
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
 
 
 class TrainingService:
@@ -18,7 +23,7 @@ class TrainingService:
 			entity = table_client.get_entity(partition_key=subreddit, row_key=submission_id)
 			return entity
 		except Exception as e:
-			print(e)
+			logger.exception(e)
 			return None
 		finally:
 			table_client.close()
@@ -62,5 +67,5 @@ class TrainingService:
 			title = entity.get("title")
 			return TableFactory.create_tertiary_entity(subreddit=subreddit, submission_id=submission_id, _type=_type, title=title, caption=caption, path=path, exists=exists, training_count=0)
 		except Exception as e:
-			print(e)
+			logger.exception(e)
 			return None

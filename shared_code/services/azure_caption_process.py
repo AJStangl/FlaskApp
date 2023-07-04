@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import os
 
 import requests
@@ -10,6 +11,10 @@ from azure.ai.vision import VisionServiceOptions, VisionSource, ImageAnalysisOpt
 from PIL.ImageOps import contain
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.azure_storage.tables import TableAdapter
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
+
 
 
 class AzureCaption(object):
@@ -24,7 +29,7 @@ class AzureCaption(object):
 			out_path = f"data/caption/{image_id}.json"
 			temp_url = "https://ajdevreddit.blob.core.windows.net/data/image/" + image_id + ".jpg"
 			if self.__file_system.exists(out_path):
-				print(f"File already exists: {out_path}")
+				logger.info(f"File already exists: {out_path}")
 				return out_path
 			image_analyzer: ImageAnalyzer = self._get_image_analyzer(image_url=temp_url)
 
@@ -39,30 +44,30 @@ class AzureCaption(object):
 							handle.write(json_result)
 							return out_path
 					else:
-						print("No image analysis result")
+						logger.info("No image analysis result")
 						return None
 
 				if image_analysis_result.reason == ImageAnalysisResultReason.ERROR:
 					error_details = ImageAnalysisErrorDetails.from_result(image_analysis_result)
-					print(f"Error: {error_details}")
+					logger.exception(f"Error: {error_details}")
 					return None
 
 			except Exception as e:
-				print(e)
+				logger.exception(e)
 				return None
 
 			finally:
 				del image_analyzer
 
 			if image_analysis_result is not None:
-				print("Image Analysis Result: ", image_analysis_result)
+				logger.info("Image Analysis Result: ", image_analysis_result)
 				return image_analysis_result
 			else:
-				print("Image Analysis Result: ", image_analysis_result)
+				logger.info("Image Analysis Result: ", image_analysis_result)
 				return None
 
 		except Exception as e:
-			print(e)
+			logger.exception(e)
 			raise Exception("Bruh")
 
 	def run_analysis(self, image_id):
@@ -75,10 +80,10 @@ class AzureCaption(object):
 
 			current_captions = self.__file_system.exists(f"data/caption/{image_id}.json")
 
-			print(f"=== current caption files: {current_captions} ===")
+			logger.info(f"=== current caption files: {current_captions} ===")
 
 			if not current_captions:
-				print("No caption file found, no analysis to run")
+				logger.info("No caption file found, no analysis to run")
 				return
 
 			caption_data = json.loads(self.__file_system.read_text(f"data/caption/{image_id}.json", encoding='utf-8'))
@@ -133,10 +138,10 @@ class AzureCaption(object):
 			# Find the table record for the image
 			entity = list(secondary_curation_table_client.query_entities(f"RowKey eq '{image_id}'"))
 			if len(entity) == 0:
-				print(f"No entity found for {image_id}")
+				logger.info(f"No entity found for {image_id}")
 				return
 			if len(entity) > 1:
-				print(f"Multiple entities found for {image_id}")
+				logger.info(f"Multiple entities found for {image_id}")
 				return
 
 			# Now we have the entity, we can update it with the new data
@@ -174,7 +179,7 @@ class AzureCaption(object):
 			secondary_curation_table_client.upsert_entity(entity)
 
 		except Exception as e:
-			print(e)
+			logger.exception(e)
 			raise e
 
 	def _get_image_analyzer(self, image_path: str = None, image_url: str = None) -> ImageAnalyzer:
@@ -232,11 +237,11 @@ class AzureCaption(object):
 			with _file_system.open(out_path, 'wb', encoding='utf-8') as handle:
 				handle.write(img_byte_arr.getvalue())
 			resized.close()
-			print(f'Thumbnail created for {target_image_id}')
+			logger.info(f'Thumbnail created for {target_image_id}')
 			return out_path
 
 		except Exception as ex:
-			print(f'Error creating thumbnail for {target_image_id}: {ex}')
+			logger.exception(f'Error creating thumbnail for {target_image_id}: {ex}')
 			return "/data/nope"
 
 	def _auto_azure_thumbnail(self, image_id: str, width: int = 512, height: int = 512, smartCropping: bool = True):
@@ -254,17 +259,17 @@ class AzureCaption(object):
 			result = requests.post(url, headers=headers, data=json.dumps(data))
 
 			if result.status_code != 200:
-				print(f"Error creating Azure thumbnail for {image_id}: {result.status_code}")
-				print(result.content)
+				logger.info(f"Error creating Azure thumbnail for {image_id}: {result.status_code}")
+				logger.info(result.content)
 				return None
 
 			with self.__file_system.open(f"data/image/azure/{image_id}.jpg", 'wb') as f:
 				f.write(result.content)
 
-			print("Thumbnail Azure Thumbnail created for " + image_id)
+			logger.info("Thumbnail Azure Thumbnail created for " + image_id)
 			return f"data/image/azure/{image_id}.jpg"
 		except Exception as ex:
-			print(f'Error creating Azure thumbnail for {image_id}: {ex}')
+			logger.exception(f'Error creating Azure thumbnail for {image_id}: {ex}')
 			return None
 
 	def _pad(self, image, size, centering=(0.5, 0.5)):
@@ -301,5 +306,5 @@ class AzureCaption(object):
 				copied_image.close()
 				return pil_thumbnail_path
 		except Exception as e:
-			print(e)
+			logger.exception(e)
 			return None

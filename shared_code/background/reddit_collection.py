@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import logging
 import os
 import threading
 import time
@@ -10,6 +11,13 @@ from adlfs import AzureBlobFileSystem
 import random
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.azure_storage.tables import TableAdapter
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.getLogger("diffusers").setLevel(logging.WARNING)
+logging.getLogger("azure.storage").setLevel(logging.WARNING)
+logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class RedditImageCollector(threading.Thread):
@@ -83,7 +91,7 @@ class RedditImageCollector(threading.Thread):
 		return extant_ids
 
 	async def run_polling_for_new_images(self):
-		print("Starting Reddit-Image-Collector Poller")
+		logger.info("Starting Reddit-Image-Collector Poller")
 		target = 'curationPrimary'
 		random.shuffle(self._subs)
 		subreddit_name = "+".join(self._subs)
@@ -97,7 +105,7 @@ class RedditImageCollector(threading.Thread):
 			async for submission in subreddit.stream.submissions(skip_existing=False):
 				await submission.load()
 				if submission.id in extant_data:
-					print("=== Image already acquired ===")
+					logger.info("=== Image already acquired ===")
 					continue
 				if submission is None:
 					continue
@@ -120,9 +128,9 @@ class RedditImageCollector(threading.Thread):
 						self.records_processed += 1
 						client.close()
 						extant_data = self._get_extant_data(target)
-						print(f"{row}")
+						logger.info(f"{row}")
 		except Exception as e:
-			print(e)
+			logger.exception(e)
 			time.sleep(1)
 			await reddit.close()
 		finally:
@@ -132,13 +140,13 @@ class RedditImageCollector(threading.Thread):
 		try:
 			asyncio.run(self.run_polling_for_new_images())
 		except Exception as e:
-			print(e)
+			logger.exception(e)
 
 	def run(self):
-		print("=== Starting Reddit-Image-Collector Runner ===")
+		logger.info("=== Starting Reddit-Image-Collector Runner ===")
 		self.wrap_async()
 
 	def stop(self):
-		print("=== Stopping Reddit-Image-Collector Runner ===")
+		logger.info("=== Stopping Reddit-Image-Collector Runner ===")
 		[item.cancel() for item in asyncio.all_tasks(asyncio.get_event_loop())]
 		self.worker_thread.join()
