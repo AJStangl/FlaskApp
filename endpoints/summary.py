@@ -24,9 +24,6 @@ def summary():
 		for elem in accepted_entities:
 			data_points.append(dict(elem))
 
-
-
-		# df = pandas.DataFrame(data=data_points)
 		image = BytesIO()
 		plot, sub_data = get_stats_graph()
 
@@ -70,9 +67,8 @@ def data():
 
 
 def get_stats_graph():
-	import requests
 	import matplotlib.pyplot as plt
-	response = requests.get(url_for("api.list_stats", _external=True)).json()
+	response = list_stats()
 	subreddit_names = [entry['SubName'] for entry in response]
 	trained_values = [entry['Trained'] for entry in response]
 	x = range(len(subreddit_names))
@@ -88,3 +84,32 @@ def get_stats_graph():
 
 	plt.tight_layout()
 	return plt, response
+
+
+def list_stats():
+	from tqdm import tqdm
+	client = table_adapter.service.get_table_client("training")
+	records = []
+
+	try:
+		list_of_subs = list(client.list_entities(select=['PartitionKey']))
+		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
+		for elem in tqdm(foo, desc="Subs", total=len(foo.keys())):
+			record = {
+				"SubName": elem,
+				"Trained": 0,
+				"Untrained": 0,
+				"Total": foo[elem]
+			}
+			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
+												 query_filter=f"PartitionKey eq '{elem}'"))
+			for item in tqdm(listing, desc=elem, total=len(listing)):
+				if item['training_count'] == 0:
+					record["Untrained"] += 1
+				else:
+					record["Trained"] += item['training_count']
+			records.append(record)
+
+		return records
+	finally:
+		client.close()

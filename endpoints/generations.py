@@ -66,5 +66,11 @@ def send_to_reddit():
 
 
 def get_subs():
-	import requests
-	return requests.get(url_for("api.list_subs", _external=True)).json()
+	import pandas
+	client = table_adapter.service.get_table_client("training")
+	try:
+		list_of_subs = list(client.list_entities(select=['PartitionKey']))
+		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
+		return foo
+	finally:
+		client.close()
