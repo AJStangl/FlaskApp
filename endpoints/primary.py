@@ -19,13 +19,14 @@ def primary():
 		record = primary_curation_service.get_next_record()
 
 		if record is None:
-			return render_template('error.jinja2', error="No more records to process")
+			return render_template('monitor.jinja2')
+
 		else:
 			name = record['id']
 			subreddit = record['subreddit']
 			return redirect(url_for('primary.primary_image', name=name, subreddit=subreddit))
 	except StopIteration:
-		return render_template('error.jinja2', error="No more records to process")
+		return render_template('monitor.jinja2')
 	except Exception as e:
 		return render_template('error.jinja2', error=f"An unknown error has occurred: {e}")
 

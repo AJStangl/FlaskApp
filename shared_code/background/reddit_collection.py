@@ -7,7 +7,7 @@ import time
 import asyncpraw
 import requests
 from adlfs import AzureBlobFileSystem
-
+import random
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.azure_storage.tables import TableAdapter
 
@@ -41,34 +41,8 @@ class RedditImageCollector(threading.Thread):
 			"hotofficegirls",
 			"Ifyouhadtopickone"
 		]
-		self._sources: [dict] = [
-			{"name": "CityDiffusion", "data": ["CityPorn"]},
-			{"name": "NatureDiffusion", "data": ["EarthPorn"]},
-			{"name": "CosmicDiffusion", "data": ["spaceporn"]},
-			{"name": "ITAPDiffusion", "data": ["itookapicture"]},
-			{"name": "MemeDiffusion", "data": ["memes"]},
-			{"name": "TTTDiffusion", "data": ["trippinthroughtime"]},
-			{"name": "WallStreetDiffusion", "data": ["wallstreetbets"]},
-			{"name": "SexyDiffusion", "data": ["selfies", "Amicute", "amihot", "AmIhotAF", "HotGirlNextDoor"]},
-			{"name": "FatSquirrelDiffusion", "data": ["fatsquirrelhate"]},
-			{"name": "CelebrityDiffusion", "data": ["celebrities"]},
-			{"name": "OldLadyDiffusion", "data": ["oldladiesbakingpies"]},
-			{"name": "MildlyPenisDiffusion", "data": ["mildlypenis"]},
-			{"name": "SWFPetite", "data": ["sfwpetite"]},
-			{"name": "SFWMilfs", "data": ["cougars_and_milfs_sfw"]},
-			{"name": "RedHeadDiffusion", "data": ["SFWRedheads"]},
-			{"name": "NextDoorGirlsDiffusion", "data": ["SFWNextDoorGirls"]},
-			{"name": "SexyDressDiffusion",
-			 "data": ["SunDressesGoneWild", "ShinyDresses", "SlitDresses", "CollaredDresses", "DressesPorn",
-					  "WomenInLongDresses", "Dresses", "tightdresses", "DLAH"]},
-			{"name": "SexyAsianDiffusion",
-			 "data": ["realasians", "KoreanHotties", "prettyasiangirls", "AsianOfficeLady", "AsianInvasion",
-					  "AesPleasingAsianGirls"]},
-			{"name": "PrettyGirlDiffusion",
-			 "data": ["sexygirls", "PrettyGirls", "gentlemanboners", "hotofficegirls", "TrueFMK", "Ifyouhadtopickone"]},
-			{"name": "CandleDiffusion", "data": ["bathandbodyworks"]}
-		]
-		self._worker_thread = threading.Thread(target=self.run, name="RedditImageCollector", daemon=True)
+		self.worker_thread = threading.Thread(target=self.run, name="RedditImageCollector", daemon=True)
+		self.records_processed = 0
 
 	def _make_table_row(self, submission, image_hash):
 		table_row = {
@@ -111,22 +85,21 @@ class RedditImageCollector(threading.Thread):
 	async def run_polling_for_new_images(self):
 		print("Starting Reddit-Image-Collector Poller")
 		target = 'curationPrimary'
-
-		# Target subreddit
+		random.shuffle(self._subs)
 		subreddit_name = "+".join(self._subs)
 		extant_data = self._get_extant_data(target)
-		# Create a Reddit instance
-		reddit = asyncpraw.Reddit(client_id=os.environ['client_id'], client_secret=os.environ['client_secret'], password=os.environ['password'], user_agent="script:%(bot_name)s:v%(bot_version)s (by /u/%(bot_author)s)", username=os.environ["reddit_username"])
+		reddit = asyncpraw.Reddit(client_id=os.environ['client_id'], client_secret=os.environ['client_secret'],
+								  password=os.environ['password'],
+								  user_agent="script:%(bot_name)s:v%(bot_version)s (by /u/%(bot_author)s)",
+								  username=os.environ["reddit_username"])
 		try:
 			subreddit = await reddit.subreddit(subreddit_name)
-
 			async for submission in subreddit.stream.submissions(skip_existing=False):
 				await submission.load()
 				if submission.id in extant_data:
 					print("=== Image already acquired ===")
 					continue
 				if submission is None:
-					time.sleep(60 * 5)
 					continue
 				else:
 					if submission.url.endswith(('.jpg', '.jpeg', '.png')):
@@ -139,11 +112,12 @@ class RedditImageCollector(threading.Thread):
 
 						exists = self._file_system.exists(row['path'])
 
-						row["model"] = self._add_source(row, self._sources)
+						row["model"] = ""
 						row["exists"] = exists
 
 						client = self._table_adapter.get_table_client(target)
 						client.upsert_entity(row)
+						self.records_processed += 1
 						client.close()
 						extant_data = self._get_extant_data(target)
 						print(f"{row}")
@@ -151,15 +125,20 @@ class RedditImageCollector(threading.Thread):
 			print(e)
 			time.sleep(1)
 			await reddit.close()
-			asyncio.run(self.run_polling_for_new_images())
+		finally:
+			await reddit.close()
 
 	def wrap_async(self):
 		try:
 			asyncio.run(self.run_polling_for_new_images())
 		except Exception as e:
 			print(e)
-			asyncio.run(self.run_polling_for_new_images())
 
 	def run(self):
 		print("=== Starting Reddit-Image-Collector Runner ===")
 		self.wrap_async()
+
+	def stop(self):
+		print("=== Stopping Reddit-Image-Collector Runner ===")
+		[item.cancel() for item in asyncio.all_tasks(asyncio.get_event_loop())]
+		self.worker_thread.join()

@@ -19,7 +19,7 @@ def secondary():
 	try:
 		record = secondary_curation_service.get_next_record()
 		if record is None:
-			return render_template('error.jinja2', error="No more records to process")
+			return render_template('monitor.jinja2')
 
 		name = record['id']
 		subreddit = record['subreddit']
@@ -33,14 +33,13 @@ def secondary():
 def secondary_image(name, subreddit):
 	try:
 		record = secondary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
+
 		record_id = record.get('id')
 		subreddit = record.get('subreddit')
 		thumbnail_path, azure_thumbnail, pil_thumbnail = secondary_curation_service.get_image_url(record_id=record_id, subreddit=subreddit)
-		# dense_captions: list[dict] = secondary_curation_service.get_dense_captions(name)
-		# relevant_tags: list[dict] = secondary_curation_service.get_relevant_tags(name)
 
-		record['dense_captions'] = []   # dense_captions
-		record['tags'] = []            # relevant_tags
+		record['dense_captions'] = []
+		record['tags'] = []
 
 		azure_caption = record.get('azure_caption')
 

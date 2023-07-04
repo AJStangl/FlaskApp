@@ -1,59 +1,78 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="container">
-        <h1>Generations Table</h1>
-        <table class="gr">
-            <thead>
-            <tr>
-                <th>path</th>
-                <th>prompt</th>
-                <th>style</th>
-                <th>title</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody>
+        <h1>Generations</h1>
+        <div class="card-deck" style="display: block;">
             {% for item in data %}
-                <tr>
-                    <td><img style="display: table" src="{{ item.path }}" alt="Image"></td>
-                    <td>{{ item.prompt }}</td>
-                    <td>{{ item.style }}</td>
-                    <td>{{ item.title }}</td>
-                    <td>
-                        <div class="container-fluid">
-                            <button class="btn btn-primary" onclick="sendAction('{{ item.path }}, {{ item.title }}')">
-                                SendToReddit
-                            </button>
-                            <div>
-                                <label for="subreddit">Subreddit:</label>
-                                <input class="form-control" type="text" id="subreddit" name="subreddit">
+                <div class="card mb-3">
+                    <img class="card-img-top" src="{{ item.path }}" alt="Image">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ item.title }}</h5>
+                        <p class="card-text">{{ item.prompt }}</p>
+                        <p class="card-text">{{ item.style }}</p>
+                        <div class="form-group">
+                            <label for="subreddit">Subreddit:</label>
+                            <select class="form-control" id="subreddit-{{ loop.index }}" name="subreddit">
+                                <option value="" disabled selected>Select a subreddit</option>
+                                <option value="custom">Type your own</option>
+                                {%  for item in subs %}
+                                    <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                            <div id="customSubredditContainer-{{ loop.index }}" style="display: none;">
+                                <label for="customSubreddit">Custom Subreddit:</label>
+                                <input class="form-control" type="text" id="customSubreddit-{{ loop.index }}" name="customSubreddit">
                             </div>
                         </div>
-                    </td>
-                </tr>
+                        <button class="btn btn-primary" onclick="sendAction('{{ item.path }}', '{{ item.title }}', '{{ loop.index }}')">
+                            Send To Reddit
+                        </button>
+                    </div>
+                </div>
             {% endfor %}
-            </tbody>
-        </table>
+        </div>
     </div>
     <script>
-        function sendAction(path, title) {
-            var sub = document.getElementById("subreddit").value
+        function sendAction(path, title, index) {
+            var subredditSelect = document.getElementById("subreddit-" + index);
+            var subreddit;
+            if (subredditSelect.value === 'custom') {
+                subreddit = document.getElementById("customSubreddit-" + index).value;
+            } else {
+                subreddit = subredditSelect.value;
+            }
             fetch('/generations/send_to_reddit', {
                 method: 'POST',
                 body: JSON.stringify({
                     path: path,
                     title: title,
-                    sub: sub,
+                    sub: subreddit,
                 }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             }).then((response) => {
-                alert(response.json())
+                return response.json();
+            }).then((data) => {
+                alert(JSON.stringify(data));
                 console.log('Action sent to Flask backend!');
             }).catch((error) => {
                 console.error('Error sending action to Flask backend:', error);
             });
         }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var subredditSelects = document.querySelectorAll("select[name='subreddit']");
+            subredditSelects.forEach(function(select) {
+                var customSubredditContainer = document.getElementById("customSubredditContainer-" + select.id.slice(-1));
+                select.addEventListener("change", function() {
+                    if (this.value === "custom") {
+                        customSubredditContainer.style.display = "block";
+                    } else {
+                        customSubredditContainer.style.display = "none";
+                    }
+                });
+            });
+        });
     </script>
 {% endblock %}

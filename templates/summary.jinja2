@@ -1,101 +1,133 @@
 {% extends "base.html" %}
+
 {% block content %}
-    <div class="container">
-        <h1>Summary Table</h1>
+<div class="container">
+  <h1>Summary Table</h1>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Table Selection</h5>
+
+      <div class="card-text">
         <div class="form-group">
-            <label for="dropdown">Select a table</label>
-            <select class="form-control" id="dropdown">
-                {% for option in options %}
-                    <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-            </select>
-            <div class="form-group">
-                <label for="query-input">Query</label>
-                <input type="text" class="form-control" id="query-input" placeholder="Enter a query">
-            </div>
-            <div class="form-group">
-                <label for="limit">Query</label>
-                <input type="text" class="form-control" id="limit" placeholder="Max Number Of Records To Return"
-                       value=100>
-            </div>
-            <button class="btn btn-primary" id="search-button">Search</button>
-            <div>
-                <img src="data:image/png;base64, {{ plot_url }}">
-            </div>
-            <table class="table mt-4">
-                <thead>
-                <tr>
-                    {% for header in headers %}
-                        <th>{{ header }}</th>
-                    {% endfor %}
-                </tr>
-                </thead>
-                <tbody id="table-data">
-                {% for row in data %}
-                    <tr>
-                        {% for value in row %}
-                            <td>{{ value }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            <div id="loading-spinner" class="spinner-border text-primary" role="status" hidden>
-                <span class="sr-only">Loading...</span>
-            </div>
+          <label for="dropdown">Select a table</label>
+          <select class="form-control" id="dropdown">
+            {% for option in options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
         </div>
-        <div class="container-fluid">
-            {{ table_html | safe }}
+
+        <div class="form-group">
+          <label for="query-input">Query</label>
+          <input type="text" class="form-control" id="query-input" placeholder="Enter a query">
         </div>
+
+        <div class="form-group">
+          <label for="limit">Max Number Of Records To Return</label>
+          <input type="text" class="form-control" id="limit" placeholder="Max Number Of Records To Return" value="100">
+        </div>
+
+        <button class="btn btn-primary" id="search-button">Search</button>
+      </div>
     </div>
-    <script>
-        $(document).ready(function () {
-            $('#search-button').click(function () {
-                const button = document.getElementById("search-button");
-                button.setAttribute("disabled", '');
-                const table = document.getElementById("table-data");
-                table.setAttribute("hidden", '');
-                const loading_spinner = document.getElementById("loading-spinner");
-                loading_spinner.removeAttribute("hidden");
+  </div>
 
-                const query = $('#query-input').val();
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Table Data</h5>
 
-                $.ajax({
-                    url: '/summary/data',
-                    type: 'POST',
-                    data: {
-                        table: $('#dropdown').val(),
-                        query: query,
-                        limit: $('#limit').val()
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        populateTable(response);
-                        loading_spinner.setAttribute("hidden", '');
-                        table.removeAttribute("hidden");
-                        button.removeAttribute("disabled");
-                    }
-                });
-            });
+      <div class="card-text">
+        <div>
+          <img src="data:image/png;base64, {{ plot_url }}">
+        </div>
 
+        <table class="table mt-4">
+          <thead>
+            <tr>
+              {% for header in headers %}
+              <th>{{ header }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody id="table-data">
+            {% for row in data %}
+            <tr>
+              {% for value in row %}
+              <td>{{ value }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
-            function populateTable(data) {
-                const table = $('#table-data');
-                table.empty();
+        <div id="loading-spinner" class="spinner-border text-primary" role="status" hidden>
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                $.each(data.headers, function (index, header) {
-                    table.append($('<th></th>').text(header));
-                });
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Additional Table</h5>
 
-                $.each(data.data, function (index, row) {
-                    const tableRow = $('<tr></tr>');
-                    $.each(row, function (i, value) {
-                        tableRow.append($('<td></td>').text(value));
-                    });
-                    table.append(tableRow);
-                });
-            }
+      <div class="card-text">
+        <div class="container-fluid">
+          {{ table_html | safe }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#search-button').click(function() {
+      const button = document.getElementById("search-button");
+      button.setAttribute("disabled", "");
+      const table = document.getElementById("table-data");
+      table.setAttribute("hidden", "");
+      const loading_spinner = document.getElementById("loading-spinner");
+      loading_spinner.removeAttribute("hidden");
+
+      const query = $('#query-input').val();
+
+      $.ajax({
+        url: '/summary/data',
+        type: 'POST',
+        data: {
+          table: $('#dropdown').val(),
+          query: query,
+          limit: $('#limit').val()
+        },
+        dataType: 'json',
+        success: function(response) {
+          populateTable(response);
+          loading_spinner.setAttribute("hidden", "");
+          table.removeAttribute("hidden");
+          button.removeAttribute("disabled");
+        }
+      });
+    });
+
+    function populateTable(data) {
+      const table = $('#table-data');
+      table.empty();
+
+      $.each(data.headers, function(index, header) {
+        table.append($('<th></th>').text(header));
+      });
+
+      $.each(data.data, function(index, row) {
+        const tableRow = $('<tr></tr>');
+        $.each(row, function(i, value) {
+          tableRow.append($('<td></td>').text(value));
         });
-    </script>
+        table.append(tableRow);
+      });
+    }
+  });
+</script>
 
 {% endblock %}

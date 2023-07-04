@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+    {{ error }}
+
+    <div class="container">
+        <h1>Process Management</h1>
+        <p>Status: {{ data.status }}</p>
+        <p>Total Records: {{ data.records }}</p>
+        <p>Click the button below to retrieve data from the API:</p>
+        <button id="api-button-start" class="btn btn-primary">Start Data Collection</button>
+        <button id="api-button-stop" class="btn btn-primary">End Data Collection</button>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- Add the required JavaScript libraries here -->
+    <script>
+        // Function to handle the button click event
+        function handleButtonClickStart() {
+            // Make a GET request to the API endpoint
+            fetch('{{ url_for('monitor.collect', state='start') }}')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    window.location.href = data.redirect;
+                })
+                .catch(error => {
+                    // Handle any errors that occurred during the request
+                    console.error(error);
+                });
+        }
+        function handleButtonClickStop() {
+            // Make a GET request to the API endpoint
+            fetch('{{ url_for('monitor.collect', state='stop') }}')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    window.location.href = data.redirect;
+                })
+                .catch(error => {
+                    // Handle any errors that occurred during the request
+                    console.error(error);
+                });
+        }
+
+        // Add an event listener to the button
+        document.getElementById('api-button-start').addEventListener('click', handleButtonClickStart);
+        document.getElementById('api-button-stop').addEventListener('click', handleButtonClickStop);
+    </script>
+{% endblock %}

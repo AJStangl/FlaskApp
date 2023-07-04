@@ -20,14 +20,17 @@
         </div>
         <div class="toolbar">
             <form action="{{ url_for('index.select_endpoint') }}" method="GET">
-                <select name="endpoint" class="form-control form-select" aria-label="Select Endpoint"
-                        onchange="submit()">
-                    <option class="form-control" selected>Select Activity</option>
-                    <option class="form-control" value="primary">Primary Curation</option>
-                    <option class="form-control" value="secondary">Secondary Curation</option>
-                    <option class="form-control" value="summary">Summary</option>
-                    <option class="form-control" value="generations">Generations</option>
-                </select>
+                <div class="btn-group" role="group" aria-label="Select Endpoint">
+                    <button type="submit" name="endpoint" value="primary" class="btn btn-secondary">Primary Curation
+                    </button>
+                    <button type="submit" name="endpoint" value="secondary" class="btn btn-secondary">Secondary
+                        Curation
+                    </button>
+                    <button type="submit" name="endpoint" value="summary" class="btn btn-secondary">Summary</button>
+                    <button type="submit" name="endpoint" value="generations" class="btn btn-secondary">Generations
+                    </button>
+                    <button type="submit" name="endpoint" value="monitor" class="btn btn-secondary">Monitor</button>
+                </div>
             </form>
         </div>
     </div>
@@ -275,8 +278,109 @@
     }
 </style>
 
-{% block content %}{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="header-bar">
+            <div class="container">
+                <h1>Image Curation Application</h1>
+            </div>
+            <div class="toolbar">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Primary Curation</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Secondary Curation</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Summary</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Generations</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Monitor</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        $(document).ready(function () {
+            // Display loading icon on navigation button click
+            $('.nav-link').on('click', function () {
+                // Show loading icon
+                showLoadingIcon();
 
+                // Delay the actual navigation for demonstration purposes
+                setTimeout(function () {
+                    // Simulate navigation to the selected page
+                    var endpoint = $(this).attr('href');
+                    window.location.href = endpoint;
+                }, 2000); // Replace 2000 with the desired delay in milliseconds
+            });
+
+            // Function to show the loading icon
+            function showLoadingIcon() {
+                var loadingContainer = $('<div>', {class: 'loading-container'});
+                var loadingIcon = $('<div>', {class: 'loading-icon'});
+                loadingContainer.append(loadingIcon);
+                $('body').append(loadingContainer);
+            }
+        });
+    </script>
+    <style>
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .loading-icon {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+{% endblock %}
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.panzoom/4.0.0/panzoom.min.js"
+        integrity="sha512-9P4403el58YclVUmhMst5Bzpcy+i0V0F0wiMlrkTDgmVqYXhF+tccpnhGIHKzKPXKaTF0Q4J9UEhu2i6PckJWg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>

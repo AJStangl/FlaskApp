@@ -5,14 +5,14 @@ from io import BytesIO
 
 import matplotlib
 import pandas
-from flask import Blueprint, render_template, request, jsonify, send_file
+from flask import Blueprint, render_template, request, jsonify, send_file, url_for
 
 from shared_code.azure_storage.tables import TableAdapter
+from shared_code.background.reddit_collection import RedditImageCollector
 
 table_adapter: TableAdapter = TableAdapter()
 
 api_bp = Blueprint('api', __name__)
-
 
 
 @api_bp.route('/api/gpt', methods=['GET'])
@@ -94,6 +94,7 @@ def list_subs():
 		import numpy as np
 		if isinstance(object, np.generic):
 			return object.item()
+
 	client = table_adapter.service.get_table_client("training")
 	try:
 		list_of_subs = list(client.list_entities(select=['PartitionKey']))
@@ -112,6 +113,7 @@ def list_stats():
 		import numpy as np
 		if isinstance(object, np.generic):
 			return object.item()
+
 	client = table_adapter.service.get_table_client("training")
 	records = []
 
@@ -125,7 +127,8 @@ def list_stats():
 				"Untrained": 0,
 				"Total": foo[elem]
 			}
-			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"], query_filter=f"PartitionKey eq '{elem}'"))
+			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
+												 query_filter=f"PartitionKey eq '{elem}'"))
 			for item in tqdm(listing, desc=elem, total=len(listing)):
 				if item['training_count'] == 0:
 					record["Untrained"] += 1
