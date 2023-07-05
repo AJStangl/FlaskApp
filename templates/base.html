@@ -13,28 +13,40 @@
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="header-bar">
-        <div class="container">
-            <h1>Image Curation Application</h1>
-        </div>
-        <div class="toolbar">
-            <form action="{{ url_for('index.select_endpoint') }}" method="GET">
-                <div class="btn-group" role="group" aria-label="Select Endpoint">
-                    <button type="submit" name="endpoint" value="primary" class="btn btn-secondary">Primary Curation
+<div class="container">
+        <div class="header-bar">
+            <div class="container">
+                <h1>Image Curation Application</h1>
+            </div>
+            <div class="toolbar">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
                     </button>
-                    <button type="submit" name="endpoint" value="secondary" class="btn btn-secondary">Secondary
-                        Curation
-                    </button>
-                    <button type="submit" name="endpoint" value="summary" class="btn btn-secondary">Summary</button>
-                    <button type="submit" name="endpoint" value="generations" class="btn btn-secondary">Generations
-                    </button>
-                    <button type="submit" name="endpoint" value="monitor" class="btn btn-secondary">Monitor</button>
-                </div>
-            </form>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="{{ url_for('primary.primary') }}">Primary Curation</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('secondary.secondary') }}">Secondary Curation</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('summary.summary') }}">Summary</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('generations.generations') }}">Generations</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('monitor.monitor') }}">Monitor</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
         </div>
     </div>
-</div>
 
 
 <!-- Optional JavaScript -->
@@ -279,40 +291,6 @@
 </style>
 
 {% block content %}
-    <div class="container">
-        <div class="header-bar">
-            <div class="container">
-                <h1>Image Curation Application</h1>
-            </div>
-            <div class="toolbar">
-                <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav">
-                            <li class="nav-item active">
-                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Primary Curation</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Secondary Curation</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Summary</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Generations</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('index.select_endpoint') }}">Monitor</a>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-            </div>
-        </div>
-    </div>
 
     <script>
         $(document).ready(function () {
