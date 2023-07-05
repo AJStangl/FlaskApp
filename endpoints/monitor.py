@@ -6,7 +6,6 @@ from shared_code.background.reddit_collection import RedditImageCollector
 table_adapter: TableAdapter = TableAdapter()
 reddit_collector: RedditImageCollector = RedditImageCollector()
 
-
 monitor_bp = Blueprint('monitor', __name__)
 
 

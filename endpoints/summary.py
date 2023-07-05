@@ -31,7 +31,8 @@ def summary():
 		table_html = df.to_html()
 		image.seek(0)
 		plot_url = base64.b64encode(image.getvalue()).decode('utf8')
-		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url, table_html=table_html)
+		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url,
+							   table_html=table_html)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
@@ -74,7 +75,7 @@ def get_stats_graph():
 	width = 0.25
 
 	fig, ax = plt.subplots()
-	rects1 = ax.bar(x, trained_values, width, label='Trained')
+	ax.bar(x, trained_values, width, label='Trained')
 	ax.set_ylabel('Count')
 	ax.set_title('Subreddit Statistics')
 	ax.set_xticks([val + width for val in x])

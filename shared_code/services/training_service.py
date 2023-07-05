@@ -36,7 +36,8 @@ class TrainingService:
 			# For azure
 			azure_thumbnail_path = secondary_entry.get("azure_thumbnail_path")
 			azure_caption = secondary_entry.get("azure_caption")
-			azure = self.make_entity(caption=azure_caption, path=azure_thumbnail_path, _type="azure", entity=secondary_entry)
+			azure: dict = self.make_entity(caption=azure_caption, path=azure_thumbnail_path, _type="azure",
+										   entity=secondary_entry)
 			if azure is not None:
 				if azure['exists']:
 					training_table_client.upsert_entity(azure)
@@ -44,7 +45,8 @@ class TrainingService:
 			# For Pil
 			pil_caption = secondary_entry.get("pil_caption")
 			pil_thumbnail_path = secondary_entry.get("pil_thumbnail_path")
-			pil = self.make_entity(caption=pil_caption, path=pil_thumbnail_path, _type="pil", entity=secondary_entry)
+			pil: dict = self.make_entity(caption=pil_caption, path=pil_thumbnail_path, _type="pil",
+										 entity=secondary_entry)
 			if pil is not None:
 				if pil['exists']:
 					training_table_client.upsert_entity(pil)
@@ -52,7 +54,8 @@ class TrainingService:
 			# For Smart
 			smart_path = secondary_entry.get("thumbnail_path")
 			smart_caption = secondary_entry.get("smart_caption")
-			smart = self.make_entity(caption=smart_caption, path=smart_path, _type="smart", entity=secondary_entry)
+			smart: dict = self.make_entity(caption=smart_caption, path=smart_path, _type="smart",
+										   entity=secondary_entry)
 			if smart is not None:
 				if smart['exists']:
 					training_table_client.upsert_entity(smart)
@@ -65,7 +68,9 @@ class TrainingService:
 			subreddit = entity.get("PartitionKey")
 			submission_id = entity.get("RowKey")
 			title = entity.get("title")
-			return TableFactory.create_tertiary_entity(subreddit=subreddit, submission_id=submission_id, _type=_type, title=title, caption=caption, path=path, exists=exists, training_count=0)
+			return TableFactory.create_tertiary_entity(subreddit=subreddit, submission_id=submission_id, _type=_type,
+													   title=title, caption=caption, path=path, exists=exists,
+													   training_count=0)
 		except Exception as e:
 			logger.exception(e)
 			return None

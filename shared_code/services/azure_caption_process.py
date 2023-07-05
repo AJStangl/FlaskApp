@@ -4,11 +4,12 @@ import logging
 import os
 
 import requests
-from PIL import Image, ImageOps, ImageFilter
+from PIL import Image, ImageFilter
+from PIL.ImageOps import contain
 from adlfs import AzureBlobFileSystem
 from azure.ai.vision import VisionServiceOptions, VisionSource, ImageAnalysisOptions, ImageAnalysisFeature, \
 	ImageAnalyzer, ImageAnalysisResultDetails, ImageAnalysisResultReason, ImageAnalysisResult, ImageAnalysisErrorDetails
-from PIL.ImageOps import contain
+
 from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
 from shared_code.azure_storage.tables import TableAdapter
 

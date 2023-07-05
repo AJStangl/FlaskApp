@@ -1,5 +1,4 @@
 import json
-import json
 import random
 from io import BytesIO
 
@@ -88,10 +87,10 @@ def diffusion(sub='all', count=0):
 
 @api_bp.route('/api/list-subs', methods=['GET'])
 def list_subs():
-	def np_encoder(object):
+	def np_encoder(_object):
 		import numpy as np
-		if isinstance(object, np.generic):
-			return object.item()
+		if isinstance(_object, np.generic):
+			return _object.item()
 
 	client = table_adapter.service.get_table_client("training")
 	try:
@@ -106,11 +105,10 @@ def list_subs():
 
 @api_bp.route('/api/list-stats', methods=['GET'])
 def list_stats():
-	from tqdm import tqdm
-	def np_encoder(object):
+	def np_encoder(_object):
 		import numpy as np
-		if isinstance(object, np.generic):
-			return object.item()
+		if isinstance(_object, np.generic):
+			return _object.item()
 
 	client = table_adapter.service.get_table_client("training")
 	records = []
@@ -118,7 +116,7 @@ def list_stats():
 	try:
 		list_of_subs = list(client.list_entities(select=['PartitionKey']))
 		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
-		for elem in tqdm(foo, desc="Subs", total=len(foo.keys())):
+		for elem in foo:
 			record = {
 				"SubName": elem,
 				"Trained": 0,
@@ -127,7 +125,7 @@ def list_stats():
 			}
 			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
 												 query_filter=f"PartitionKey eq '{elem}'"))
-			for item in tqdm(listing, desc=elem, total=len(listing)):
+			for item in listing:
 				if item['training_count'] == 0:
 					record["Untrained"] += 1
 				else:

@@ -1,10 +1,11 @@
+import io
 import json
 import logging
 import os
+
 import praw
-from flask import Blueprint, render_template, request, jsonify, url_for
-import io
 import requests
+from flask import Blueprint, render_template, request, jsonify
 
 from shared_code.azure_storage.tables import TableAdapter
 

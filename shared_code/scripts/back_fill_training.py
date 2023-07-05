@@ -15,6 +15,5 @@ if __name__ == '__main__':
 
 	accepted_entities = list(table_client.query_entities("thumbnail_accept eq true"))
 
-
 	for record in tqdm(accepted_entities, total=len(accepted_entities)):
 		training_service.upsert_data_record(record['subreddit'], record['id'])
