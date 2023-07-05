@@ -1,14 +1,12 @@
-import base64
+import json
 import json
 import random
 from io import BytesIO
 
-import matplotlib
 import pandas
-from flask import Blueprint, render_template, request, jsonify, send_file, url_for
+from flask import Blueprint, send_file
 
 from shared_code.azure_storage.tables import TableAdapter
-from shared_code.background.reddit_collection import RedditImageCollector
 
 table_adapter: TableAdapter = TableAdapter()
 
@@ -20,7 +18,7 @@ def gpt():
 	client = table_adapter.service.get_table_client("training")
 	try:
 		gpt_dict_list = list(client.query_entities(
-			query_filter="PartitionKey ne 'memes' and PartitionKey ne 'itookapicture' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'CityPorn'",
+			query_filter="PartitionKey ne 'memes'",
 			select=['GPT']))
 		io = BytesIO()
 		for item in gpt_dict_list:
