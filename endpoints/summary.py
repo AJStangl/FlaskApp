@@ -1,9 +1,8 @@
 import base64
-import json
 from io import BytesIO
 
 import pandas
-from flask import Blueprint, render_template, request, jsonify, url_for
+from flask import Blueprint, render_template, request, jsonify
 
 from shared_code.azure_storage.tables import TableAdapter
 

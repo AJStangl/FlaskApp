@@ -2,11 +2,17 @@
 
 {% block content %}
     <div class="container">
-        <div><p>number of images remaining: {{ num_remaining }}</p></div>
-        <div id="image-container" class="image-container">
-            <div class="image-wrapper" onclick="showFullscreenImage('{{ link }}')" style="width: auto; height: auto; background-image: url('{{ link }}')">
-                <img id='primary-image' alt="" src='{{ link }}' >
-                <div id='image-label' class="image-label">Original Image</div>
+        <div class="card">
+            <div class="card-header">
+                <p>Number of images remaining: {{ num_remaining }}</p>
+            </div>
+            <div class="card-body">
+                <div id="image-container" class="image-container">
+                    <div class="image-wrapper" onclick="showFullscreenImage('{{ link }}')" style="width: auto; height: auto; background-image: url('{{ link }}')">
+                        <img id="primary-image" alt="" src="{{ link }}">
+                        <div id="image-label" class="image-label">Original Image</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -14,34 +20,38 @@
         <div class="loading-icon"></div>
     </div>
     <div class="container">
-        <div class="mb-3">
-            <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
-            <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
-        </div>
-        <div class="mb-3">
-            <label for="id" class="form-label">Id</label>
-            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly onclick="copyText()">
-        </div>
-        <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-            <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="subreddit" class="form-label">Subreddit</label>
-            <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="model" class="form-label">Model</label>
-            <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="caption" class="form-label">Caption</label>
-            <textarea class="form-control" id="caption" rows="3">{{ content.caption }}</textarea>
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <button id="accept" class="btn btn-primary" onclick="accept()">Accept</button>
+                    <button id="reject" class="btn btn-warning" onclick="reject()">Reject</button>
+                </div>
+                <div class="mb-3">
+                    <label for="id" class="form-label">Id</label>
+                    <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly onclick="copyText()">
+                </div>
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="subreddit" class="form-label">Subreddit</label>
+                    <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="model" class="form-label">Model</label>
+                    <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="caption" class="form-label">Caption</label>
+                    <textarea class="form-control" id="caption" rows="3">{{ content.caption }}</textarea>
+                </div>
+            </div>
         </div>
     </div>
     <script>
         document.onreadystatechange = () => {
-          getInstrinsicSize(document.getElementById('primary-image'), 'image-label')
+            getInstrinsicSize(document.getElementById('primary-image'), 'image-label')
         }
 
         function accept() {

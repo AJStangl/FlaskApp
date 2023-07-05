@@ -80,7 +80,6 @@ def secondary_curate():
 	azure_caption = request.form['azure_caption']
 	smart_crop_accept = request.form['smart_crop_accept'] == 'true'
 	smart_caption = request.form['smart_caption']
-	best_caption = request.form['best_caption']
 
 	try:
 		secondary_curation_service.update_record(
@@ -90,7 +89,7 @@ def secondary_curate():
 			reddit_caption=reddit_caption,
 			smart_caption=smart_caption,
 			azure_caption=azure_caption,
-			best_caption=best_caption,
+			best_caption="",
 			pil_crop_accept=pil_crop_accept,
 			azure_crop_accept=azure_crop_accept,
 			smart_crop_accept=smart_crop_accept,
