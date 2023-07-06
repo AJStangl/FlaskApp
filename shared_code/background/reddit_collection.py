@@ -148,5 +148,4 @@ class RedditImageCollector(threading.Thread):
 
 	def stop(self):
 		logger.info("=== Stopping Reddit-Image-Collector Runner ===")
-		[item.cancel() for item in asyncio.all_tasks(asyncio.get_event_loop())]
-		self.worker_thread.join()
+		self.worker_thread.join(timeout=10)
