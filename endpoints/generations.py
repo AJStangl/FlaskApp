@@ -24,12 +24,10 @@ def generations():
 		data = []
 		accepted_entities = client.list_entities()
 		for elem in accepted_entities:
-			# if max_rows == 0:
-			# 	break
 			data.append(dict(elem))
 			max_rows -= 1
 
-		# data.sort(key=lambda x: x["TimeStamp"], reverse=True)
+		data.sort(key=lambda x: x["RowKey"], reverse=True)
 		subs = get_subs()
 		return render_template('generations.jinja2', data=data, subs=list(subs.keys()))
 	except Exception as e:
