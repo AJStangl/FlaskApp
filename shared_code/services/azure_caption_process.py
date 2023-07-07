@@ -245,6 +245,35 @@ class AzureCaption(object):
 			logger.exception(f'Error creating thumbnail for {target_image_id}: {ex}')
 			return "/data/nope"
 
+	def azure_768_thumbnail(self, _image_id: str, crop_type: str, width: int = 768, height: int = 768, smartCropping: bool = True):
+		try:
+
+			endpoint = f"vision/v3.1/generateThumbnail?width={width}&height={height}&smartCropping={smartCropping}"
+			base = os.environ["AZURE_VISION_ENDPOINT"]
+			url = f"{base}{endpoint}"
+			headers = {
+				"Ocp-Apim-Subscription-Key": os.environ["AZURE_VISION_API_KEY"],
+			}
+			data = {
+				"url": "https://ajdevreddit.blob.core.windows.net/data/image/" + _image_id + ".jpg"
+			}
+			result = requests.post(url, headers=headers, data=json.dumps(data))
+
+			if result.status_code != 200:
+				print(f"\nError creating Azure thumbnail for {_image_id}: {result.status_code}")
+				print(result.content)
+				return None
+
+			with self.__file_system.open(f"data/image/768/{crop_type}/{_image_id}.jpg", 'wb') as f:
+				f.write(result.content)
+
+			print(f"\nThumbnail {crop_type} Thumbnail created for " + _image_id)
+			return f"data/image/768/{crop_type}/{_image_id}.jpg"
+
+		except Exception as ex:
+			print(f'\nError creating {crop_type} thumbnail for {_image_id}: {ex}')
+			return None
+
 	def _auto_azure_thumbnail(self, image_id: str, width: int = 512, height: int = 512, smartCropping: bool = True):
 		try:
 			endpoint = f"vision/v3.1/generateThumbnail?width={width}&height={height}&smartCropping={smartCropping}"
