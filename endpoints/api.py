@@ -6,6 +6,7 @@ import pandas
 from flask import Blueprint, send_file
 
 from shared_code.storage.tables import TableAdapter
+from shared_code.storage.azure_file_system_adapter import AzureFileStorageAdapter, AzureBlobFileSystem
 
 table_adapter: TableAdapter = TableAdapter()
 
@@ -221,5 +222,44 @@ def list_768_stats():
 		io = BytesIO(json.dumps(records, default=np_encoder).encode("UTF-8"))
 		io.seek(0)
 		return send_file(io, mimetype="application/json")
+	finally:
+		client.close()
+
+
+@api_bp.route('/api/768/complete-runs', methods=['GET'])
+def complete_runs():
+	client = table_adapter.service.get_table_client("training768")
+	file_system: AzureBlobFileSystem = AzureFileStorageAdapter("data").get_file_storage()
+	try:
+		runs_to_complete = file_system.ls("data/prior_runs")
+		completed_data = []
+		for run in runs_to_complete:
+			try:
+				with file_system.open(run, 'r', encoding="utf-8") as f:
+					try:
+						content = f.readlines()
+						for line in content:
+							try:
+								data = json.loads(line)
+								image_type, image_id = data["image"].split("-")[0], data["image"].split("-")[1]
+								image_id_final = image_id.split(".")[0] + f"-{image_type}"
+								partition_key = data["subreddit"]
+								entity = client.get_entity(partition_key=partition_key, row_key=image_id_final)
+								training_count = int(entity["training_count"])
+								training_count += 1
+								entity["training_count"] = training_count
+								client.upsert_entity(entity)
+								completed_data.append(data)
+							except Exception as e:
+								print(e)
+								continue
+					except Exception as e:
+						print(e)
+						continue
+				file_system.delete(run)
+			except Exception as e:
+				print(e)
+				continue
+		return completed_data
 	finally:
 		client.close()
