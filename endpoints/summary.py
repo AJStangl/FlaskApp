@@ -92,24 +92,28 @@ def list_stats(table_name="training768"):
 		list_of_subs = list(client.list_entities(select=['PartitionKey']))
 		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
 		for elem in foo:
-			record = {
-				"SubName": elem,
-				"Trained": 0,
-				"Untrained": 0,
-				"Total": int(foo[elem]),
-				"Percent Influence": float(foo[elem] / sum([foo[item] for item in foo])),
-				"Percent Trained Influence": 0.0,
-				"All Images": sum([foo[item] for item in foo])
-			}
-			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
-												 query_filter=f"PartitionKey eq '{elem}'"))
-			for item in tqdm(listing, desc=elem, total=len(listing)):
-				if int(item['training_count']) == 0 or item['training_count'] is None:
-					record["Untrained"] += 1
-				else:
-					record["Trained"] += int(item['training_count'])
-					record["Percent Trained Influence"] = float(item["Trained"]) / float(item["All Images"])
-			records.append(record)
+			try:
+				record = {
+					"SubName": elem,
+					"Trained": 0,
+					"Untrained": 0,
+					"Total": int(foo[elem]),
+					"Percent Influence": float(foo[elem] / sum([foo[item] for item in foo])),
+					"Percent Trained Influence": 0.0,
+					"All Images": sum([foo[item] for item in foo])
+				}
+				listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
+													 query_filter=f"PartitionKey eq '{elem}'"))
+				for item in listing:
+					if int(item['training_count']) == 0 or item['training_count'] is None:
+						record["Untrained"] += 1
+					else:
+						record["Trained"] += int(item['training_count'])
+						record["Percent Trained Influence"] = float(record["Trained"]) / float(record["All Images"])
+				records.append(record)
+			except Exception as e:
+				print(e)
+				continue
 
 		return records
 	finally:
