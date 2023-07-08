@@ -36,7 +36,7 @@ def training_768(sub, count, total):
 	client = table_adapter.service.get_table_client("training768")
 	try:
 		if sub == 'all':
-			query_filter = f"training_count eq {count} and exists eq true"
+			query_filter = f"training_count eq {count} and exists eq true and caption ne ''"
 		else:
 			q = [f"PartitionKey eq '{item}'" for item in sub.split(",")]
 			query_filter = " or ".join(q) + f" and training_count eq {count}" + " and exists eq true"
@@ -63,10 +63,11 @@ def training_768(sub, count, total):
 				data_element = {
 					"title": elem["title"],
 					"subreddit": elem["PartitionKey"],
-					"caption": elem["format_caption"],
+					"caption": elem["caption"],
+					"tags": elem["tags"],
 					"path": elem["path"],
 					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}",
-					"text": f"{elem['title']}, {elem['format_caption']}, r/{elem['PartitionKey']}"
+					"text": f"{elem['title']}, {elem['caption']}, {elem['tags']}, r/{elem['PartitionKey']}"
 				}
 				random_sample_records.append(data_element)
 
