@@ -62,18 +62,6 @@ class TrainingService:
 		finally:
 			training_table_client.close()
 
-	def create_curation_entity(self, subreddit: str, record_id: str, title: str, caption: str, path: str, input_type: str) -> dict:
-		return {
-			"PartitionKey": subreddit,
-			"RowKey": f"{record_id}-{input_type}",
-			"GPT": f"<|startoftext|><|model|>{subreddit}<|title|>{title}<|caption|>{title}, {caption}, in the style of r/{subreddit}<|endoftext|>",
-			"subreddit": subreddit,
-			"title": title,
-			"format_caption": f"{title}, {caption}, is the style of r/{subreddit}",
-			"path": path,
-			"type": input_type,
-		}
-
 	def make_entity(self, caption: str, path: str, _type: str, entity: dict):
 		try:
 			exists = self.file_system.exists(path)

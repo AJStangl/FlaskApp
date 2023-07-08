@@ -8,6 +8,7 @@ from endpoints.monitor import monitor_bp
 from endpoints.primary import primary_bp
 from endpoints.secondary import secondary_bp
 from endpoints.summary import summary_bp
+from shared_code.background.captioning import CaptioningProcesses
 from shared_code.background.message_broker import MessageBroker
 import logging
 
@@ -34,7 +35,10 @@ procs = []
 
 # Initialize message broker
 message_broker: MessageBroker = MessageBroker()
+captioning: CaptioningProcesses = CaptioningProcesses()
+
 procs.append(message_broker)
+procs.append(captioning)
 
 
 [item.start() for item in procs]

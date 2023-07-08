@@ -183,3 +183,41 @@ def list_stats():
 		return send_file(io, mimetype="application/json")
 	finally:
 		client.close()
+
+
+@api_bp.route('/api/768/list-stats', methods=['GET'])
+def list_768_stats():
+	def np_encoder(_object):
+		import numpy as np
+		if isinstance(_object, np.generic):
+			return _object.item()
+
+	client = table_adapter.service.get_table_client("training768")
+	records = []
+
+	try:
+		list_of_subs = list(client.list_entities(select=['PartitionKey']))
+		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
+		for elem in foo:
+			record = {
+				"SubName": elem,
+				"Trained": 0,
+				"Untrained": 0,
+				"Total": foo[elem]
+			}
+			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
+												 query_filter=f"PartitionKey eq '{elem}'"))
+			for item in listing:
+				if item.get('training_count') is None:
+					continue
+				if item['training_count'] == 0:
+					record["Untrained"] += 1
+				else:
+					record["Trained"] += item['training_count']
+			records.append(record)
+
+		io = BytesIO(json.dumps(records, default=np_encoder).encode("UTF-8"))
+		io.seek(0)
+		return send_file(io, mimetype="application/json")
+	finally:
+		client.close()
