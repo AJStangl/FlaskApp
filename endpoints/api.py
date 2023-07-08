@@ -15,15 +15,13 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/api/gpt', methods=['GET'])
 def gpt():
-	client = table_adapter.service.get_table_client("training")
+	client = table_adapter.service.get_table_client("training768")
 	try:
-		gpt_dict_list = list(client.query_entities(
-			query_filter="PartitionKey ne 'memes'",
-			select=['GPT']))
+		gpt_dict_list = list(client.query_entities(query_filter="training_count gt 0", select=["PartitionKey", "title", "caption", "tags"]))
 		io = BytesIO()
 		for item in gpt_dict_list:
-			line = item["GPT"]
-			encoded = line.encode("UTF-8")
+			training_line = f'<|startoftext|><|model|>{item["PartitionKey"]}<|title|>{item["title"]}<|caption|>{item["caption"]}<|tags|>{item["tags"]}<|endoftext|>\n'
+			encoded = training_line.encode("UTF-8")
 			io.write(encoded)
 		io.seek(0)
 		return send_file(io, mimetype="text")
@@ -67,7 +65,7 @@ def training_768(sub, count, total):
 					"tags": elem["tags"],
 					"path": elem["path"],
 					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}",
-					"text": f"{elem['title']}, {elem['caption']}, {elem['tags']}, r/{elem['PartitionKey']}"
+					"text": f"{elem['title']}, {elem['caption']}, r/{elem['PartitionKey']}, {elem['tags']}"
 				}
 				random_sample_records.append(data_element)
 
