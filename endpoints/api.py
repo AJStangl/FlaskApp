@@ -30,8 +30,8 @@ def gpt():
 		client.close()
 
 
-@api_bp.route('/api/training/768/<sub>/<count>', methods=['GET'])
-def training_768(sub="all", count=0):
+@api_bp.route('/api/training/768/<sub>/<count>/<total>', methods=['GET'])
+def training_768(sub, count, total):
 	client = table_adapter.service.get_table_client("training768")
 	try:
 		if sub == 'all':
@@ -48,7 +48,7 @@ def training_768(sub="all", count=0):
 		for group in df.groupby('PartitionKey', group_keys=False):
 			data_values = group[1]
 			population = len(data_values) / total_records
-			number_to_take = round(population * 1000)
+			number_to_take = round(population * int(total))
 			if number_to_take == 0:
 				number_to_take = 1
 
