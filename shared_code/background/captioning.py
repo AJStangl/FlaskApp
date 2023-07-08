@@ -54,7 +54,7 @@ class CaptioningProcesses(threading.Thread):
 			if result.status_code != 200:
 				logger.info(f"\nError creating Azure thumbnail for {_image_id}: {result.status_code}")
 				logger.info(result.content)
-				return f"bruh, {result.status_code}"
+				return f"bruh"
 
 			with _file_system.open(f"data/image/768/{crop_type}/{_image_id}.jpg", 'wb') as f:
 				f.write(result.content)
@@ -64,7 +64,7 @@ class CaptioningProcesses(threading.Thread):
 
 		except Exception as ex:
 			logger.exception(f'\nError creating {crop_type} thumbnail for {_image_id}: {ex}')
-			return f"bruh, {ex}"
+			return f"bruh"
 
 	def run(self):
 		while True:
@@ -73,6 +73,10 @@ class CaptioningProcesses(threading.Thread):
 			table_client_768 = TableAdapter().get_table_service_client().get_table_client("training768")
 			try:
 				for record in records:
+					if record.get("path").__contains__("bruh"):
+						continue
+					if record.get("PartitionKey") in ["CityPorn", "bathandbodyworks", "fatsquirrelhate", "EarthPorn", "itookapicture"]:
+						continue
 					smart_path_768 = record.get("large_smart_path")
 					azure_path_768 = record.get("large_azure_path")
 					if smart_path_768 is not None:
