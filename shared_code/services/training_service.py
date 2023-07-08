@@ -1,9 +1,9 @@
 import logging
 
 from adlfs import AzureBlobFileSystem
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.tables import TableAdapter
 from shared_code.schemas.table_schema import TableFactory
-from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
+from shared_code.storage.azure_file_system_adapter import AzureFileStorageAdapter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
@@ -45,8 +45,7 @@ class TrainingService:
 			# For Pil
 			pil_caption = secondary_entry.get("pil_caption")
 			pil_thumbnail_path = secondary_entry.get("pil_thumbnail_path")
-			pil: dict = self.make_entity(caption=pil_caption, path=pil_thumbnail_path, _type="pil",
-										 entity=secondary_entry)
+			pil: dict = self.make_entity(caption=pil_caption, path=pil_thumbnail_path, _type="pil", entity=secondary_entry)
 			if pil is not None:
 				if pil['exists']:
 					training_table_client.upsert_entity(pil)
@@ -68,9 +67,15 @@ class TrainingService:
 			subreddit = entity.get("PartitionKey")
 			submission_id = entity.get("RowKey")
 			title = entity.get("title")
-			return TableFactory.create_tertiary_entity(subreddit=subreddit, submission_id=submission_id, _type=_type,
-													   title=title, caption=caption, path=path, exists=exists,
-													   training_count=0)
+			return TableFactory.create_tertiary_entity(
+				subreddit=subreddit,
+				submission_id=submission_id,
+				_type=_type,
+				title=title,
+				caption=caption,
+				path=path,
+				exists=exists,
+				training_count=0)
 		except Exception as e:
 			logger.exception(e)
 			return None

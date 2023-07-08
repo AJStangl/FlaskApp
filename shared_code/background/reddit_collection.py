@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import logging
+import multiprocessing
 import os
 import threading
 import time
@@ -9,8 +10,8 @@ import asyncpraw
 import requests
 from adlfs import AzureBlobFileSystem
 import random
-from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.azure_file_system_adapter import AzureFileStorageAdapter
+from shared_code.storage.tables import TableAdapter
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -20,9 +21,8 @@ logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(l
 logger = logging.getLogger(__name__)
 
 
-class RedditImageCollector(threading.Thread):
+class RedditImageCollector:
 	def __init__(self):
-		super().__init__(daemon=True, name="RedditImageCollector")
 		self._table_adapter: TableAdapter = TableAdapter()
 		self._file_system: AzureBlobFileSystem = AzureFileStorageAdapter('data').get_file_storage()
 		self._subs: [str] = [
@@ -49,7 +49,7 @@ class RedditImageCollector(threading.Thread):
 			"hotofficegirls",
 			"Ifyouhadtopickone"
 		]
-		self.worker_thread = threading.Thread(target=self.run, name="RedditImageCollector", daemon=True)
+		self.process = None
 		self.records_processed = 0
 
 	def _make_table_row(self, submission, image_hash):
@@ -143,9 +143,20 @@ class RedditImageCollector(threading.Thread):
 			logger.exception(e)
 
 	def run(self):
-		logger.info("=== Starting Reddit-Image-Collector Runner ===")
 		self.wrap_async()
 
+	def start(self):
+		logger.info("=== Starting Reddit-Image-Collector Runner ===")
+		if self.process is None:
+			self.process = multiprocessing.Process(target=self.run, daemon=True, name="RedditImageCollector")
+			self.process.start()
+		else:
+			logger.info("=== Reddit-Image-Collector Runner already running ===")
+
 	def stop(self):
-		logger.info("=== Stopping Reddit-Image-Collector Runner ===")
-		self.worker_thread.join(timeout=10)
+		if self.process is not None:
+			logger.info("=== Stopping Reddit-Image-Collector Runner ===")
+			self.process.terminate()
+			self.process = None
+		else:
+			logger.info("=== Reddit-Image-Collector Runner is not running ===")

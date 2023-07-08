@@ -3,9 +3,9 @@ import logging
 
 from adlfs import AzureBlobFileSystem
 
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.tables import TableAdapter
 from shared_code.services.base_curation_service import BaseService
-from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
+from shared_code.storage.azure_file_system_adapter import AzureFileStorageAdapter
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')

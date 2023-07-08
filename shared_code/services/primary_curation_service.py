@@ -1,4 +1,4 @@
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.tables import TableAdapter
 from shared_code.services.base_curation_service import BaseService
 import logging
 

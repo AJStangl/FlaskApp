@@ -7,7 +7,7 @@ import praw
 import requests
 from flask import Blueprint, render_template, request, jsonify
 
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.tables import TableAdapter
 
 table_adapter: TableAdapter = TableAdapter()
 

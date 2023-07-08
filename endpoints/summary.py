@@ -1,10 +1,10 @@
 import base64
 from io import BytesIO
-
+from tqdm import tqdm
 import pandas
 from flask import Blueprint, render_template, request, jsonify
-
-from shared_code.azure_storage.tables import TableAdapter
+import matplotlib.pyplot as plt
+from shared_code.storage.tables import TableAdapter
 
 table_adapter: TableAdapter = TableAdapter()
 
@@ -13,7 +13,7 @@ summary_bp = Blueprint('summary', __name__)
 
 @summary_bp.route('/summary/')
 def summary():
-	client = table_adapter.service.get_table_client("training")
+	client = table_adapter.service.get_table_client("training768")
 	try:
 		tables = list(table_adapter.service.list_tables())
 
@@ -67,7 +67,6 @@ def data():
 
 
 def get_stats_graph():
-	import matplotlib.pyplot as plt
 	response = list_stats()
 	subreddit_names = [entry['SubName'] for entry in response]
 	trained_values = [entry['Trained'] for entry in response]
@@ -86,28 +85,30 @@ def get_stats_graph():
 	return plt, response
 
 
-def list_stats():
-	from tqdm import tqdm
-	client = table_adapter.service.get_table_client("training")
+def list_stats(table_name="training768"):
+	client = table_adapter.service.get_table_client(table_name)
 	records = []
-
 	try:
 		list_of_subs = list(client.list_entities(select=['PartitionKey']))
 		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
-		for elem in tqdm(foo, desc="Subs", total=len(foo.keys())):
+		for elem in foo:
 			record = {
 				"SubName": elem,
 				"Trained": 0,
 				"Untrained": 0,
-				"Total": foo[elem]
+				"Total": int(foo[elem]),
+				"Percent Influence": float(foo[elem] / sum([foo[item] for item in foo])),
+				"Percent Trained Influence": 0.0,
+				"All Images": sum([foo[item] for item in foo])
 			}
 			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
 												 query_filter=f"PartitionKey eq '{elem}'"))
 			for item in tqdm(listing, desc=elem, total=len(listing)):
-				if item['training_count'] == 0:
+				if int(item['training_count']) == 0 or item['training_count'] is None:
 					record["Untrained"] += 1
 				else:
-					record["Trained"] += item['training_count']
+					record["Trained"] += int(item['training_count'])
+					record["Percent Trained Influence"] = float(item["Trained"]) / float(item["All Images"])
 			records.append(record)
 
 		return records

@@ -1,7 +1,7 @@
 import io
 
-from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.azure_file_system_adapter import AzureFileStorageAdapter
+from shared_code.storage.tables import TableAdapter
 from PIL import Image
 
 if __name__ == '__main__':

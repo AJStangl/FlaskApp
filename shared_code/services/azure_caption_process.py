@@ -10,8 +10,8 @@ from adlfs import AzureBlobFileSystem
 from azure.ai.vision import VisionServiceOptions, VisionSource, ImageAnalysisOptions, ImageAnalysisFeature, \
 	ImageAnalyzer, ImageAnalysisResultDetails, ImageAnalysisResultReason, ImageAnalysisResult, ImageAnalysisErrorDetails
 
-from shared_code.azure_storage.azure_file_system_adapter import AzureFileStorageAdapter
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.azure_file_system_adapter import AzureFileStorageAdapter
+from shared_code.storage.tables import TableAdapter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
@@ -137,16 +137,16 @@ class AzureCaption(object):
 				relevant_tags_table_client.upsert_entity(tag_entity)
 
 			# Find the table record for the image
-			entity = list(secondary_curation_table_client.query_entities(f"RowKey eq '{image_id}'"))
-			if len(entity) == 0:
+			records: list = list(secondary_curation_table_client.query_entities(f"RowKey eq '{image_id}'"))
+			if len(records) == 0:
 				logger.info(f"No entity found for {image_id}")
 				return
-			if len(entity) > 1:
+			if len(records) > 1:
 				logger.info(f"Multiple entities found for {image_id}")
 				return
 
 			# Now we have the entity, we can update it with the new data
-			entity = entity[0]
+			entity = records[0]
 
 			entity['azure_caption'] = filtered_data['captions']['text']
 
@@ -232,6 +232,9 @@ class AzureCaption(object):
 			copied_image.close()
 			resized = cropped.resize((512, 512), 1)
 			cropped.close()
+
+			if resized.mode in ("RGBA", "P"):
+				resized = resized.convert("RGB")
 			img_byte_arr = io.BytesIO()
 			resized.save(img_byte_arr, format='JPEG')
 			resized.close()
@@ -327,6 +330,8 @@ class AzureCaption(object):
 				image = Image.open(f)
 				copied_image = image.copy()
 				image.close()
+				if copied_image.mode in ("RGBA", "P"):
+					copied_image = copied_image.convert("RGB")
 				padded_image = self._pad(copied_image, (512, 512))
 				read_bytes_buffer = io.BytesIO()
 				padded_image.save(read_bytes_buffer, format='JPEG')

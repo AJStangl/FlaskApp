@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <!--suppress JSDeprecatedSymbols -->
     <div class="container-fluid">
         <div class="container-fluid">
             <div><p>number of images remaining: {{ num_remaining }}</p></div>
@@ -26,7 +27,7 @@
                         <img src="{{ thumbnail_path }}" alt="Smart Crop">
                         <div class="image-label">Primary Thumbnail</div>
                     </div>
-                    <input id="smart" value=true onchange="validateInput('smart')" onload="validateInput('smart')" hidden>
+                    <label for="smart"></label><input id="smart" value=true onchange="validateInput('smart')" onload="validateInput('smart')" hidden>
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary" onclick="acceptImage('smart')">Accept</button>
@@ -53,7 +54,7 @@
                         <img class="card-img-top" src="{{ azure_thumbnail }}" alt="Azure Crop">
                         <div class="image-label">Azure Crop</div>
                     </div>
-                    <input id="azure" value=true onchange="validateInput('azure')" onload="validateInput('azure')" hidden>
+                    <label for="azure"></label><input id="azure" value=true onchange="validateInput('azure')" onload="validateInput('azure')" hidden>
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary" onclick="acceptImage('azure')">Accept</button>
@@ -80,7 +81,7 @@
                         <img class="card-img-top" src="{{ pil_thumbnail }}" alt="PIL Thumbnail">
                         <div class="image-label">PIL Thumbnail</div>
                     </div>
-                    <input id="pil" value=true onchange="validateInput('pil')" onload="validateInput('pil')" hidden>
+                    <label for="pil"></label><input id="pil" value=true onchange="validateInput('pil')" onload="validateInput('pil')" hidden>
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary" onclick="acceptImage('pil')">Accept</button>
@@ -215,40 +216,6 @@
             });
         }
 
-        function setTag(i) {
-            let relevant_tag_selector = '#relevant-tag-' + i
-            let id = $(relevant_tag_selector).attr('id');
-            let thing = document.getElementById(id);
-            let checked = thing.checked;
-
-            let text_id_selector = '#tag-text-' + i
-            let text_id = $(text_id_selector).attr('id');
-            let text_thing = document.getElementById(text_id);
-            let text = text_thing.innerHTML;
-            if (checked) {
-                $(relevant_tag_selector).val(text);
-            } else {
-                $(relevant_tag_selector).val("");
-            }
-        }
-
-        function setCaptions(i) {
-            let additional_caption_selector = '#additional-caption-' + i;
-            let id = $(additional_caption_selector).attr('id');
-            let thing = document.getElementById(id);
-            let checked = thing.checked;
-
-            let caption_text_selector = '#caption-text-' + i;
-            let text_id = $(caption_text_selector).attr('id');
-            let text_thing = document.getElementById(text_id);
-            let text = text_thing.innerHTML;
-            if (checked) {
-                $(additional_caption_selector).val(text);
-            } else {
-                $(additional_caption_selector).val("");
-            }
-        }
-
         function accept() {
             showLoadingIndication();
             sendRequest("accept");
@@ -284,18 +251,18 @@
             const captions = [];
             const tags = [];
             {% for i in range(content.dense_captions | length) %}
-                var additional_caption_id = $('#additional-caption-{{ i }}').attr('id');
-                var additional_caption_element = document.getElementById(additional_caption_id);
-                var additional_caption_element_checked = additional_caption_element.checked;
+                const additional_caption_id = $('#additional-caption-{{ i }}').attr('id');
+                const additional_caption_element = document.getElementById(additional_caption_id);
+                const additional_caption_element_checked = additional_caption_element.checked;
                 if (additional_caption_element_checked) {
                     let data = $('#additional-caption-{{ i }}').val();
                     captions.push(data);
                 }
             {% endfor %}
             {% for i in range(content.tags | length) %}
-                var id_for_tag = $('#relevant-tag-{{ i }}').attr('id');
-                var element_for_check_box = document.getElementById(id_for_tag);
-                var checked_tag = element_for_check_box.checked;
+                const id_for_tag = $('#relevant-tag-{{ i }}').attr('id');
+                const element_for_check_box = document.getElementById(id_for_tag);
+                const checked_tag = element_for_check_box.checked;
                 if (checked_tag) {
                     let data = $('#relevant-tag-{{ i }}').val();
                     tags.push(data);
@@ -330,48 +297,33 @@
     </script>
     <script>
 
-        function toggleHide(thing) {
-            console.log("In toggleHide")
-            console.log(thing)
-            var target_id = thing + "-wrapper";
-            var inputElement = document.getElementById(target_id);
-            inputElement.hidden = !inputElement.hidden;
-            return;
-        }
-
         function validateInput() {
-            var id = event.target.id;
-            var target_id = id + "-wrapper";
+            const id = event.target.id;
+            const target_id = id + "-wrapper";
 
-            var event_accept = event.target.value;
-            var inputElement = document.getElementById(target_id);
+            const event_accept = event.target.value;
+            const inputElement = document.getElementById(target_id);
 
-            var indication_id = document.getElementById(id + "-indication");
-            {#indication_id.hidden = false;#}
+            const indication_id = document.getElementById(id + "-indication");
             indication_id.innerHTML = event_accept;
 
             if (event_accept === false || event_accept === "false") {
                 inputElement.classList.remove("success");
                 inputElement.classList.add("warning");
-                {#inputElement.hidden = true;#}
                 return;
             }
             if (event_accept === true || event_accept === "true") {
                 inputElement.classList.remove("warning");
                 inputElement.classList.add("success");
-                {#inputElement.hidden = true;#}
                 return;
             }
-            {#inputElement.hidden = true;#}
             inputElement.classList.remove("success");
             inputElement.classList.add("warning");
-            return;
-
         }
     </script>
     <script>
         function copytext() {
-            var id = event.target.id;
+            const id = event.target.id;
             navigator.clipboard.readText().then(() => {
                 const target_value = document.getElementById(id).value;
                 navigator.clipboard.writeText(target_value);
@@ -380,16 +332,16 @@
     </script>
     <script>
         function acceptImage(elementName) {
-            var element = document.getElementById(elementName);
+            const element = document.getElementById(elementName);
             element.setAttribute('value', 'true')
-            var event = new Event('change');
+            const event = new Event('change');
             element.dispatchEvent(event);
         }
 
         function rejectImage(elementName) {
-            var element = document.getElementById(elementName);
+            const element = document.getElementById(elementName);
             element.setAttribute('value', 'false')
-            var event = new Event('change');
+            const event = new Event('change');
             element.dispatchEvent(event);
         }
     </script>

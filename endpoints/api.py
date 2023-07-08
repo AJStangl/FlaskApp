@@ -5,7 +5,7 @@ from io import BytesIO
 import pandas
 from flask import Blueprint, send_file
 
-from shared_code.azure_storage.tables import TableAdapter
+from shared_code.storage.tables import TableAdapter
 
 table_adapter: TableAdapter = TableAdapter()
 
@@ -30,18 +30,22 @@ def gpt():
 		client.close()
 
 
-@api_bp.route('/api/training/768/<count>', methods=['GET'])
-def training_768(count=0):
+@api_bp.route('/api/training/768/<sub>/<count>', methods=['GET'])
+def training_768(sub="all", count=0):
 	client = table_adapter.service.get_table_client("training768")
 	try:
-		query_filter = f"training_count eq {count}"
+		if sub == 'all':
+			query_filter = f"training_count eq {count} and exists eq true"
+		else:
+			q = [f"PartitionKey eq '{item}'" for item in sub.split(",")]
+			query_filter = " or ".join(q) + f" and training_count eq {count}" + " and exists eq true"
+
 		entities = list(client.query_entities(query_filter=query_filter))
 		df = pandas.DataFrame(data=entities)
 		records = df.to_dict(orient='records')
 		total_records = len(records)
 		random_sample_records = []
 		for group in df.groupby('PartitionKey', group_keys=False):
-			sub = group[0]
 			data_values = group[1]
 			population = len(data_values) / total_records
 			number_to_take = round(population * 1000)
@@ -56,16 +60,14 @@ def training_768(count=0):
 			sample_dict = sampled_group.to_dict(orient='records')
 			for elem in sample_dict:
 				data_element = {
-					"text": elem["format_caption"],
+					"title": elem["title"],
+					"subreddit": elem["PartitionKey"],
+					"caption": elem["format_caption"],
 					"path": elem["path"],
-					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}"
+					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}",
+					"text": f"{elem['title']}, {elem['format_caption']}, r/{elem['PartitionKey']}"
 				}
 				random_sample_records.append(data_element)
-				# entity = client.get_entity(partition_key=sub, row_key=elem["RowKey"])
-				# current_count = entity['training_count']
-				# current_count += 1
-				# entity['training_count'] = current_count
-				# client.upsert_entity(entity)
 
 		random.shuffle(random_sample_records)
 		out = pandas.DataFrame(data=random_sample_records).to_json(orient='records', lines=True).encode("UTF-8")
@@ -76,8 +78,8 @@ def training_768(count=0):
 		client.close()
 
 
-@api_bp.route('/api/diffusion/<sub>/<count>', methods=['GET'])
-def diffusion(sub='all', count=0):
+@api_bp.route('/api/training/<sub>/<count>', methods=['GET'])
+def training(sub='all', count=0):
 	client = table_adapter.service.get_table_client("training")
 	try:
 		if sub == 'all':
