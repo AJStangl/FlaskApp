@@ -8,8 +8,6 @@ from endpoints.monitor import monitor_bp
 from endpoints.primary import primary_bp
 from endpoints.secondary import secondary_bp
 from endpoints.summary import summary_bp
-from shared_code.background.captioning import CaptioningProcesses
-from shared_code.background.message_broker import MessageBroker
 import logging
 
 app = Flask(__name__)
@@ -34,14 +32,14 @@ Bootstrap(app)
 procs = []
 
 # Initialize message broker
-message_broker: MessageBroker = MessageBroker()
-captioning: CaptioningProcesses = CaptioningProcesses()
+# message_broker: MessageBroker = MessageBroker()
+# captioning: CaptioningProcesses = CaptioningProcesses()
 
-procs.append(message_broker)
-procs.append(captioning)
+# procs.append(message_broker)
+# procs.append(captioning)
 
 
-[item.start() for item in procs]
+# [item.start() for item in procs]
 
 if __name__ == '__main__':
     try:

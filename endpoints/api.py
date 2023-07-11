@@ -17,7 +17,7 @@ api_bp = Blueprint('api', __name__)
 def gpt():
 	client = table_adapter.service.get_table_client("training768")
 	try:
-		gpt_dict_list = list(client.query_entities(query_filter="training_count gt 0", select=["PartitionKey", "title", "caption", "tags"]))
+		gpt_dict_list = list(client.query_entities(query_filter="training_count gt 0 and caption ne ''", select=["PartitionKey", "title", "caption", "tags"]))
 		io = BytesIO()
 		for item in gpt_dict_list:
 			training_line = f'<|startoftext|><|model|>{item["PartitionKey"]}<|title|>{item["title"]}<|caption|>{item["caption"]}<|tags|>{item["tags"]}<|endoftext|>\n'
@@ -78,30 +78,24 @@ def training_768(sub, count, total):
 		client.close()
 
 
-@api_bp.route('/api/training/<sub>/<count>', methods=['GET'])
-def training(sub='all', count=0):
-	client = table_adapter.service.get_table_client("training")
+@api_bp.route('/api/training/<sub>/<count>/<total>', methods=['GET'])
+def training(sub:str, count:int, total:int):
 	try:
 		if sub == 'all':
-			query_filter = f"training_count eq {count}"
+			query_filter = f"training_count eq {count} and exists eq true and caption ne ''"
 		else:
-			query_filter = f"PartitionKey eq '{sub}' and training_count eq {count}"
+			q = [f"PartitionKey eq '{item}'" for item in sub.split(",")]
+			query_filter = " or ".join(q) + f" and training_count eq {count}" + " and exists eq true"
 
-		accepted_data = list(client.query_entities(query_filter=query_filter,
-												   select=["path", "format_caption", "RowKey", "PartitionKey", "type",
-														   "training_count"]))
-		df = pandas.DataFrame(data=accepted_data)
-
+		entities = list(client.query_entities(query_filter=query_filter))
+		df = pandas.DataFrame(data=entities)
 		records = df.to_dict(orient='records')
 		total_records = len(records)
-
 		random_sample_records = []
-
 		for group in df.groupby('PartitionKey', group_keys=False):
-			sub = group[0]
 			data_values = group[1]
 			population = len(data_values) / total_records
-			number_to_take = round(population * 1000)
+			number_to_take = round(population * int(total))
 			if number_to_take == 0:
 				number_to_take = 1
 
@@ -113,16 +107,15 @@ def training(sub='all', count=0):
 			sample_dict = sampled_group.to_dict(orient='records')
 			for elem in sample_dict:
 				data_element = {
-					"text": elem["format_caption"],
+					"title": elem["title"],
+					"subreddit": elem["PartitionKey"],
+					"caption": elem["caption"],
+					"tags": elem["tags"],
 					"path": elem["path"],
-					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}"
+					"image": f"{elem['type']}-{elem['path'].split('/')[-1]}",
+					"text": f"{elem['title']}, {elem['caption']}, r/{elem['PartitionKey']}, {elem['tags']}"
 				}
 				random_sample_records.append(data_element)
-				entity = client.get_entity(partition_key=sub, row_key=elem["RowKey"])
-				current_count = entity['training_count']
-				current_count += 1
-				entity['training_count'] = current_count
-				client.upsert_entity(entity)
 
 		random.shuffle(random_sample_records)
 		out = pandas.DataFrame(data=random_sample_records).to_json(orient='records', lines=True).encode("UTF-8")
@@ -131,6 +124,7 @@ def training(sub='all', count=0):
 		return send_file(io, mimetype="application/jsonlines+json")
 	finally:
 		client.close()
+
 
 
 @api_bp.route('/api/list-subs', methods=['GET'])
