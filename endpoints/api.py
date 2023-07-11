@@ -13,9 +13,24 @@ table_adapter: TableAdapter = TableAdapter()
 api_bp = Blueprint('api', __name__)
 
 
-@api_bp.route('/api/gpt', methods=['GET'])
-def gpt():
-	client = table_adapter.service.get_table_client("training768")
+@api_bp.route('/api/list/tables', methods=['GET'])
+def list_tables():
+
+	try:
+		result = table_adapter.service.list_tables()
+		final = list(result)
+		out = pandas.DataFrame(data=final).to_json(orient='records', lines=True).encode("UTF-8")
+		io = BytesIO(out)
+		io.seek(0)
+		return send_file(io, mimetype="application/jsonlines+json")
+	except Exception as e:
+		return str(e)
+
+
+
+@api_bp.route('/api/gpt/<table>', methods=['GET'])
+def gpt(table: str):
+	client = table_adapter.service.get_table_client(table)
 	try:
 		gpt_dict_list = list(client.query_entities(query_filter="training_count gt 0 and caption ne ''", select=["PartitionKey", "title", "caption", "tags"]))
 		io = BytesIO()
@@ -79,7 +94,8 @@ def training_768(sub, count, total):
 
 
 @api_bp.route('/api/training/<sub>/<count>/<total>', methods=['GET'])
-def training(sub:str, count:int, total:int):
+def training(sub: str, count: int, total: int):
+	client = table_adapter.service.get_table_client("training")
 	try:
 		if sub == 'all':
 			query_filter = f"training_count eq {count} and exists eq true and caption ne ''"
