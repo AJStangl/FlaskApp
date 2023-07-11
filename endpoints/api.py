@@ -98,12 +98,15 @@ def training(sub: str, count: int, total: int):
 	client = table_adapter.service.get_table_client("training")
 	try:
 		if sub == 'all':
-			query_filter = f"training_count eq {count} and exists eq true and caption ne ''"
+			query_filter = f"training_count eq {count} and exists eq true and caption ne '' and type eq 'smart'"
 		else:
 			q = [f"PartitionKey eq '{item}'" for item in sub.split(",")]
 			query_filter = " or ".join(q) + f" and training_count eq {count}" + " and exists eq true"
 
+		query_filter = query_filter + " and PartitionKey ne 'CityPorn' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'bathandbodyworks' and PartitionKey ne 'itookapicture' and PartitionKey ne 'memes' and PartitionKey ne 'fatsquirrelhate'"
+
 		entities = list(client.query_entities(query_filter=query_filter))
+		entities = [item for item in entities if item['PartitionKey'] != 'CityPorn' or item['PartitionKey'] != 'EarthPorn' or item['PartitionKey'] != 'bathandbodyworks' or item['PartitionKey'] != 'itookapicture' or item['PartitionKey'] != 'memes' or item['PartitionKey'] != 'fatsquirrelhate']
 		df = pandas.DataFrame(data=entities)
 		records = df.to_dict(orient='records')
 		total_records = len(records)
