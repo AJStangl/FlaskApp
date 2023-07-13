@@ -101,7 +101,7 @@ def training(sub: str, count: int, total: int):
 			query_filter = f"training_count eq {count} and exists eq true and caption ne '' and type eq 'smart'"
 		else:
 			q = [f"PartitionKey eq '{item}'" for item in sub.split(",")]
-			query_filter = " or ".join(q) + f" and training_count eq {count}" + " and exists eq true"
+			query_filter = " or ".join(q) + f" and training_count eq {count}" + " and exists eq true and type eq 'smart'"
 
 		query_filter = query_filter + " and PartitionKey ne 'CityPorn' and PartitionKey ne 'EarthPorn' and PartitionKey ne 'bathandbodyworks' and PartitionKey ne 'itookapicture' and PartitionKey ne 'memes' and PartitionKey ne 'fatsquirrelhate'"
 
