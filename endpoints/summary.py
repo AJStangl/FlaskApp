@@ -13,7 +13,7 @@ summary_bp = Blueprint('summary', __name__)
 
 @summary_bp.route('/summary/')
 def summary():
-	client = table_adapter.service.get_table_client("training768")
+	client = table_adapter.service.get_table_client("tempTraining")
 	try:
 		tables = list(table_adapter.service.list_tables())
 
@@ -85,7 +85,7 @@ def get_stats_graph():
 	return plt, response
 
 
-def list_stats(table_name="training768"):
+def list_stats(table_name="tempTraining"):
 	client = table_adapter.service.get_table_client(table_name)
 	records = []
 	try:
