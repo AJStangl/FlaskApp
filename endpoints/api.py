@@ -171,7 +171,7 @@ def list_stats():
 		if isinstance(_object, np.generic):
 			return _object.item()
 
-	client = table_adapter.service.get_table_client("training")
+	client = table_adapter.service.get_table_client("tempTraining")
 	records = []
 
 	try:
