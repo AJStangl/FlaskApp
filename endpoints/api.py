@@ -32,13 +32,15 @@ def list_tables():
 def gpt(table: str):
 	client = table_adapter.service.get_table_client(table)
 	try:
-		gpt_dict_list = list(client.query_entities(query_filter="training_count gt 0 and caption ne ''", select=["PartitionKey", "title", "caption", "tags"]))
+		gpt_dict_list = list(client.query_entities(query_filter="training_count gt 0 and caption ne ''", select=["PartitionKey", "title", "caption", "tags", "training_count"]))
 		io = BytesIO()
 		for item in gpt_dict_list:
-			training_line = f'<|startoftext|><|model|>{item["PartitionKey"]}<|title|>{item["title"]}<|caption|>{item["caption"]}<|tags|>{item["tags"]}<|endoftext|>\n'
-			encoded = training_line.encode("UTF-8")
-			io.write(encoded)
-		io.seek(0)
+			instances = item['training_count']
+			for i in range(instances):
+				training_line = f'<|startoftext|><|model|>{item["PartitionKey"]}<|title|>{item["title"]}<|caption|>{item["caption"]}<|tags|>{item["tags"]}<|endoftext|>\n'
+				encoded = training_line.encode("UTF-8")
+				io.write(encoded)
+			io.seek(0)
 		return send_file(io, mimetype="text")
 	finally:
 		client.close()
