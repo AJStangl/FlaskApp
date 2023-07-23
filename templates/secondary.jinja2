@@ -1,236 +1,66 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <!--suppress JSDeprecatedSymbols -->
-    <div class="container-fluid">
-        <div class="container-fluid">
-            <div><p>number of images remaining: {{ num_remaining }}</p></div>
-        </div>
-        <div class="container-fluid">
-            <div class="mb-3">
-                <button id=accept class="btn btn-primary" onclick="accept()">Accept</button>
-                <button id=reject class="btn btn-warning" onclick="reject()">Reject</button>
-                <button id=skip class="btn btn-secondary" onclick="sendForAnalysis()">Send For Analysis</button>
-            </div>
-        </div>
-        <div id="image-grid" class="image-grid">
-    <div class="container-fluid">
-        <!-- Smart Crop Thumbnail -->
-        <div class="card mb-3">
+    <div class="container">
+        <div class="card">
             <div class="card-header">
-                <h5 class="card-title">Smart Crop Thumbnail</h5>
+                <p>Number of images remaining: {{ num_remaining }}</p>
             </div>
             <div class="card-body">
-                <div class="image-container">
-                    <div id="smart-indication" hidden></div>
-                    <div class="image-wrapper" id="smart-wrapper" onclick="showFullscreenImage('{{ thumbnail_path }}')">
-                        <img src="{{ thumbnail_path }}" alt="Smart Crop">
-                        <div class="image-label">Primary Thumbnail</div>
+                <div id="image-container" class="image-container">
+                    <div class="image-wrapper" onclick="showFullscreenImage('{{ link }}')"
+                         style="width: auto; height: auto; background-image: url('{{ link }}')">
+                        <img id="primary-image" alt="" src="{{ link }}">
+                        <div id="image-label" class="image-label">Original Image</div>
                     </div>
-                    <label for="smart"></label><input id="smart" value=true onchange="validateInput('smart')" onload="validateInput('smart')" hidden>
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary" onclick="acceptImage('smart')">Accept</button>
-                    <button class="btn btn-danger" onclick="rejectImage('smart')">Reject</button>
-                </div>
-                <div class="mb-3">
-                    <label for="smart-caption" class="form-label">Blip Caption</label>
-                    <textarea class="form-control" id="smart-caption" rows="3" onclick="copytext()">{{ thumbnail_caption }}</textarea>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Azure Thumbnail -->
-    <div id="azure-thumbnail" class="container-fluid">
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="card-title">Azure Crop</h5>
-            </div>
+    <div class="loading-container" hidden>
+        <div class="loading-icon"></div>
+    </div>
+    <div class="container">
+        <div class="card">
             <div class="card-body">
-                <div class="image-container">
-                    <div id="azure-indication" hidden></div>
-                    <div class="image-wrapper" id="azure-wrapper" onclick="showFullscreenImage('{{ azure_thumbnail }}')">
-                        <img class="card-img-top" src="{{ azure_thumbnail }}" alt="Azure Crop">
-                        <div class="image-label">Azure Crop</div>
-                    </div>
-                    <label for="azure"></label><input id="azure" value=true onchange="validateInput('azure')" onload="validateInput('azure')" hidden>
+                <div class="mb-3">
+                    <button id="accept" class="btn btn-primary" onclick="accept()">Accept</button>
+                    <button id="reject" class="btn btn-warning" onclick="reject()">Reject</button>
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary" onclick="acceptImage('azure')">Accept</button>
-                    <button class="btn btn-danger" onclick="rejectImage('azure')">Reject</button>
+                    <label for="id" class="form-label">Id</label>
+                    <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly
+                           onclick="copyText()">
                 </div>
                 <div class="mb-3">
-                    <label for="azure-caption" class="form-label">Azure Caption</label>
-                    <textarea class="form-control" id="azure-caption" rows="3" onclick="copytext()">{{ azure_caption }}</textarea>
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly
+                           onclick="copyText()">
+                </div>
+                <div class="mb-3">
+                    <label for="subreddit" class="form-label">Subreddit</label>
+                    <input type="text" class="form-control" id="subreddit" placeholder="{{ content.PartitionKey }}"
+                           readonly onclick="copyText()">
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- PIL Thumbnail -->
-    <div id="pil-thumbnail" class="container-fluid">
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="card-title">PIL Thumbnail</h5>
-            </div>
-            <div class="card-body">
-                <div class="image-container">
-                    <div id="pil-indication" hidden></div>
-                    <div class="image-wrapper" id="pil-wrapper" onclick="showFullscreenImage('{{ pil_thumbnail }}')">
-                        <img class="card-img-top" src="{{ pil_thumbnail }}" alt="PIL Thumbnail">
-                        <div class="image-label">PIL Thumbnail</div>
-                    </div>
-                    <label for="pil"></label><input id="pil" value=true onchange="validateInput('pil')" onload="validateInput('pil')" hidden>
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary" onclick="acceptImage('pil')">Accept</button>
-                    <button class="btn btn-danger" onclick="rejectImage('pil')">Reject</button>
-                </div>
-                <div class="mb-3">
-                    <label for="pil-caption" class="form-label">PIL Caption</label>
-                    <textarea class="form-control" id="pil-caption" rows="3" onclick="copytext()">{{ pil_caption }}</textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-        <div class="loading-container" hidden>
-            <div class="loading-icon"></div>
-        </div>
-    </div>
-    <div class="container-fluid">
-        <div class="mb-3">
-            <label for="id" class="form-label">Id</label>
-            <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-            <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="subreddit" class="form-label">Subreddit</label>
-            <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="model" class="form-label">Model</label>
-            <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
-        </div>
-    </div>
-    <style>
-        .image-grid {
-            display: grid;
-            padding: 5px;
-        }
-
-        .image-grid img {
-            width: 100%;
-            height: auto;
-            cursor: pointer;
-        }
-
-        .image-container {
-            display: flex;
-        }
-
-        .image-container .image-wrapper {
-            position: relative;
-            width: 100%;
-            height: auto;
-            overflow: hidden;
-        }
-
-        .image-container .image-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: #fff;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            overflow: auto;
-        }
-
-        .modal-content {
-            display: inline;
-        }
-
-        .modal-content img {
-            display: inline;
-            max-width: 100%;
-            max-height: 100%;
-            cursor: zoom-in;
-        }
-
-        .modal-content img.zoomed {
-            cursor: zoom-out;
-            max-width: none;
-            max-height: none;
-        }
-
-        .modal-buttons {
-            margin-top: 10px;
-        }
-
-        .modal-buttons button {
-            margin: 5px;
-        }
-
-        .warning {
-            border: 2px solid red;
-        }
-
-        .success {
-            border: 2px solid green;
-        }
-    </style>
     <script>
-        function sendForAnalysis() {
-            $.ajax({
-                url: "/secondary/analysis/",
-                type: "POST",
-                header: {
-                    "content-type": "application/json"
-                },
-                data: {
-                    "image_id": "{{ content.id }}",
-                    "subreddit": "{{ content.subreddit }}",
-                    "action": "accept",
-                },
-                success: function (data) {
-                    window.location.href = data.redirect;
-                }
-            });
+        document.onreadystatechange = () => {
+            getInstrinsicSize(document.getElementById('primary-image'), 'image-label')
         }
 
         function accept() {
-            showLoadingIndication();
-            sendRequest("accept");
+            sendRequest("accept")
+            document.getElementsByClassName("loading-container")[0].hidden = false;
         }
 
         function reject() {
-            showLoadingIndication();
-            $('#pil').val(false)
-            $('#azure').val(false)
-            $('#smart').val(false)
             sendRequest("reject");
+            document.getElementsByClassName("loading-container")[0].hidden = false;
         }
 
-        function showLoadingIndication() {
-            document.getElementsByClassName("loading-container")[0].hidden = false;
+        function sendRequest(status) {
             const button = document.getElementById("accept");
             button.disabled = true;
             button.hidden = true;
@@ -239,36 +69,8 @@
             button2.disabled = true;
             button2.hidden = true;
 
-            const button3 = document.getElementById("skip");
-            button3.disabled = true;
-            button3.hidden = true;
-
-            const image_container = document.getElementById("image-grid");
+            const image_container = document.getElementById("image-container");
             image_container.hidden = true;
-        }
-
-        function sendRequest(status) {
-            const captions = [];
-            const tags = [];
-            {% for i in range(content.dense_captions | length) %}
-                const additional_caption_id = $('#additional-caption-{{ i }}').attr('id');
-                const additional_caption_element = document.getElementById(additional_caption_id);
-                const additional_caption_element_checked = additional_caption_element.checked;
-                if (additional_caption_element_checked) {
-                    let data = $('#additional-caption-{{ i }}').val();
-                    captions.push(data);
-                }
-            {% endfor %}
-            {% for i in range(content.tags | length) %}
-                const id_for_tag = $('#relevant-tag-{{ i }}').attr('id');
-                const element_for_check_box = document.getElementById(id_for_tag);
-                const checked_tag = element_for_check_box.checked;
-                if (checked_tag) {
-                    let data = $('#relevant-tag-{{ i }}').val();
-                    tags.push(data);
-                }
-            {% endfor %}
-
 
             $.ajax({
                 url: "/secondary/curate/",
@@ -278,16 +80,8 @@
                 },
                 data: {
                     "id": "{{ content.id }}",
-                    "subreddit": "{{ content.subreddit }}",
                     "action": status,
-                    "additional_captions": captions.join(','),
-                    "additional_tags": tags.join(','),
-                    "pil_crop_accept": $('#pil').val(),
-                    "reddit_caption": $('#pil-caption').val(),
-                    "azure_crop_accept": $('#azure').val(),
-                    "azure_caption": $('#azure-caption').val(),
-                    "smart_crop_accept": $('#smart').val(),
-                    "smart_caption": $('#smart-caption').val()
+                    "subreddit": "{{ content.PartitionKey }}"
                 },
                 success: function (data) {
                     window.location.href = data.redirect;
@@ -295,56 +89,4 @@
             });
         }
     </script>
-    <script>
-
-        function validateInput() {
-            const id = event.target.id;
-            const target_id = id + "-wrapper";
-
-            const event_accept = event.target.value;
-            const inputElement = document.getElementById(target_id);
-
-            const indication_id = document.getElementById(id + "-indication");
-            indication_id.innerHTML = event_accept;
-
-            if (event_accept === false || event_accept === "false") {
-                inputElement.classList.remove("success");
-                inputElement.classList.add("warning");
-                return;
-            }
-            if (event_accept === true || event_accept === "true") {
-                inputElement.classList.remove("warning");
-                inputElement.classList.add("success");
-                return;
-            }
-            inputElement.classList.remove("success");
-            inputElement.classList.add("warning");
-        }
-    </script>
-    <script>
-        function copytext() {
-            const id = event.target.id;
-            navigator.clipboard.readText().then(() => {
-                const target_value = document.getElementById(id).value;
-                navigator.clipboard.writeText(target_value);
-            });
-        }
-    </script>
-    <script>
-        function acceptImage(elementName) {
-            const element = document.getElementById(elementName);
-            element.setAttribute('value', 'true')
-            const event = new Event('change');
-            element.dispatchEvent(event);
-        }
-
-        function rejectImage(elementName) {
-            const element = document.getElementById(elementName);
-            element.setAttribute('value', 'false')
-            const event = new Event('change');
-            element.dispatchEvent(event);
-        }
-    </script>
-
-
 {% endblock %}

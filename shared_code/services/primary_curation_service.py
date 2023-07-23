@@ -1,6 +1,8 @@
+from shared_code.storage.entity_structure import StageRecord
 from shared_code.storage.tables import TableAdapter
 from shared_code.services.base_curation_service import BaseService
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
@@ -25,25 +27,26 @@ class PrimaryCurationService(BaseService):
 		client = self.get_table_client()
 		try:
 			entity = client.get_entity(partition_key=subreddit, row_key=record_id)
-			return "https://ajdevreddit.blob.core.windows.net/" + entity['path']
+			return "https://ajdevreddit.blob.core.windows.net" + entity['remote_path']
 		finally:
 			client.close()
 
-	def update_record(self, record_id: str, subreddit: str, action: str, caption: str) -> None:
+	def update_record(self, record_id: str, subreddit: str, action: str) -> None:
 		client = self.get_table_client()
 		try:
 			if action == "accept":
 				entity = client.get_entity(partition_key=subreddit, row_key=record_id)
-				entity['caption'] = caption
-				entity['accept'] = True
-				entity['curated'] = True
-				client.update_entity(entity=entity)
+				stage_record = StageRecord(**entity)
+				stage_record.accepted = True
+				stage_record.curated = True
+				client.upsert_entity(entity=stage_record.__dict__)
 				return None
 			else:
 				entity = client.get_entity(partition_key=subreddit, row_key=record_id)
-				entity['accept'] = False
-				entity['curated'] = True
-				client.update_entity(entity=entity)
+				stage_record = StageRecord(**entity)
+				stage_record.accepted = False
+				stage_record.curated = True
+				client.upsert_entity(entity=stage_record.__dict__)
 				return None
 		finally:
 			client.close()
@@ -56,18 +59,10 @@ class PrimaryCurationService(BaseService):
 		finally:
 			client.close()
 
-	def list_subs(self) -> list:
-		client = self.get_table_client()
-		try:
-			entity = client.list_entities(select="subreddit")
-			return list(set(entity))
-		finally:
-			client.close()
-
 	def get_next_record(self):
 		client = self.get_table_client()
 		try:
-			entity = client.query_entities("curated eq false")
+			entity = client.query_entities(query_filter="curated eq false")
 			return next(entity)
 		finally:
 			client.close()

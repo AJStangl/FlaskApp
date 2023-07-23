@@ -8,8 +8,6 @@ from azure.data.tables import TableClient, TableEntity, TableServiceClient
 logging.getLogger("azure.storage").setLevel(logging.WARNING)
 
 
-
-
 class TableAdapter(object):
 	credential = AzureNamedKeyCredential(os.environ["AZURE_ACCOUNT_NAME"], os.environ["AZURE_ACCOUNT_KEY"])
 

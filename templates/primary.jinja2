@@ -8,7 +8,8 @@
             </div>
             <div class="card-body">
                 <div id="image-container" class="image-container">
-                    <div class="image-wrapper" onclick="showFullscreenImage('{{ link }}')" style="width: auto; height: auto; background-image: url('{{ link }}')">
+                    <div class="image-wrapper" onclick="showFullscreenImage('{{ link }}')"
+                         style="width: auto; height: auto; background-image: url('{{ link }}')">
                         <img id="primary-image" alt="" src="{{ link }}">
                         <div id="image-label" class="image-label">Original Image</div>
                     </div>
@@ -28,23 +29,18 @@
                 </div>
                 <div class="mb-3">
                     <label for="id" class="form-label">Id</label>
-                    <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly onclick="copyText()">
+                    <input type="text" class="form-control" id="id" placeholder="{{ content.id }}" readonly
+                           onclick="copyText()">
                 </div>
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
-                    <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly>
+                    <input type="text" class="form-control" id="title" placeholder="{{ content.title }}" readonly
+                           onclick="copyText()">
                 </div>
                 <div class="mb-3">
                     <label for="subreddit" class="form-label">Subreddit</label>
-                    <input type="text" class="form-control" id="subreddit" placeholder="{{ content.subreddit }}" readonly>
-                </div>
-                <div class="mb-3">
-                    <label for="model" class="form-label">Model</label>
-                    <input type="text" class="form-control" id="model" placeholder="{{ content.model }}" readonly>
-                </div>
-                <div class="mb-3">
-                    <label for="caption" class="form-label">Caption</label>
-                    <textarea class="form-control" id="caption" rows="3">{{ content.caption }}</textarea>
+                    <input type="text" class="form-control" id="subreddit" placeholder="{{ content.PartitionKey }}"
+                           readonly onclick="copyText()">
                 </div>
             </div>
         </div>
@@ -84,9 +80,8 @@
                 },
                 data: {
                     "id": "{{ content.id }}",
-                    "caption": $("#caption").val(),
                     "action": status,
-                    "subreddit": "{{ content.subreddit }}"
+                    "subreddit": "{{ content.PartitionKey }}"
                 },
                 success: function (data) {
                     window.location.href = data.redirect;

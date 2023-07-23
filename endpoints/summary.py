@@ -13,10 +13,36 @@ summary_bp = Blueprint('summary', __name__)
 
 @summary_bp.route('/summary/')
 def summary():
-	client = table_adapter.service.get_table_client("tempTraining")
+	client = table_adapter.service.get_table_client("enrich")
 	try:
 		tables = list(table_adapter.service.list_tables())
+		entities = client.list_entities()
+		df = pandas.DataFrame(data=[dict(item) for item in entities])
+		plt.figure(figsize=(12, 8), dpi=100)
+		grouped = (df.groupby("PartitionKey")["accepted"].agg(total_count="count", accepted_true=lambda x: x.sum()))
+		grouped.plot(kind='bar', stacked=False)
+		plt.title('Accepted Status Counts by PartitionKey')
+		plt.xlabel('PartitionKey')
+		plt.ylabel('Count')
+		plt.tight_layout()
+		image = BytesIO()
+		plt.savefig(image, format='png')
+		table_html = df.to_html()
+		image.seek(0)
+		plot_url = base64.b64encode(image.getvalue()).decode('utf8')
+		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url, table_html=table_html)
+	except Exception as e:
+		return render_template('error.jinja2', error=e)
 
+	finally:
+		client.close()
+
+
+@summary_bp.route('/summary-train/')
+def summary_train():
+	client = table_adapter.service.get_table_client("train")
+	try:
+		tables = list(table_adapter.service.list_tables())
 		accepted_entities = client.list_entities()
 		accepted_entities = list(accepted_entities)
 		data_points = []
