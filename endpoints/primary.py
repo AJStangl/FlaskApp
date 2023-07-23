@@ -30,9 +30,10 @@ def primary():
 @primary_bp.route('/primary/image/<name>/<subreddit>', methods=['GET'])
 def primary_image(name, subreddit):
 	try:
+		# primary_curation_service.get_num_remaining_records()
 		record = primary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
 		image_link = primary_curation_service.get_image_url(record_id=record.get('RowKey'), subreddit=record.get('PartitionKey'))
-		return render_template('primary.jinja2', link=image_link, content=record, num_remaining=primary_curation_service.get_num_remaining_records())
+		return render_template('primary.jinja2', link=image_link, content=record, num_remaining=0)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
