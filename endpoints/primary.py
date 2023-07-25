@@ -33,7 +33,8 @@ def primary_image(name, subreddit):
 		# primary_curation_service.get_num_remaining_records()
 		record = primary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
 		image_link = primary_curation_service.get_image_url(record_id=record.get('RowKey'), subreddit=record.get('PartitionKey'))
-		return render_template('primary.jinja2', link=image_link, content=record, num_remaining=0)
+		remaining = primary_curation_service.get_num_remaining_records()
+		return render_template('primary.jinja2', link=image_link, content=record, num_remaining=remaining)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
