@@ -75,6 +75,7 @@ class SecondaryCurationService(BaseService):
 			self.get_remaining_records()
 			return next(self.records_to_process)
 		else:
+			self.total_records = self.total_records - 1
 			return next(self.records_to_process)
 
 
