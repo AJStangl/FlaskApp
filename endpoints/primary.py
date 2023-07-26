@@ -56,3 +56,10 @@ def curate():
 			return resp
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
+
+
+@primary_bp.route('/primary/reset/', methods=['POST'])
+def reset():
+	primary_curation_service.reset_records()
+	resp = {"redirect": url_for('primary.primary')}
+	return resp

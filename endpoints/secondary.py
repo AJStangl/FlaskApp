@@ -62,3 +62,10 @@ def secondary_curate():
 			return resp
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
+
+
+@secondary_bp.route('/secondary/reset/', methods=['POST'])
+def reset():
+	secondary_curation_service.reset_records()
+	resp = {"redirect": url_for('secondary.secondary')}
+	return resp

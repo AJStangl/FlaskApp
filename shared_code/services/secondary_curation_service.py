@@ -1,6 +1,6 @@
 import json
 import logging
-
+import random
 from adlfs import AzureBlobFileSystem
 
 from shared_code.storage.entity_structure import CuratedRecord
@@ -83,7 +83,12 @@ class SecondaryCurationService(BaseService):
 		client = self.get_table_client()
 		try:
 			records = list(client.query_entities(query_filter="curated eq false"))
+			random.shuffle(records)
 			self.records_to_process = enumerate(records)
 			self.total_records = len(records)
 		finally:
 			client.close()
+
+
+	def reset_records(self):
+		self.get_remaining_records()

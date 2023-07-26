@@ -2,7 +2,7 @@ from shared_code.storage.entity_structure import StageRecord
 from shared_code.storage.tables import TableAdapter
 from shared_code.services.base_curation_service import BaseService
 import logging
-import os
+import random
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
@@ -68,7 +68,11 @@ class PrimaryCurationService(BaseService):
 		client = self.get_table_client()
 		try:
 			records = list(client.query_entities(query_filter="curated eq false"))
+			random.shuffle(records)
 			self.records_to_process = enumerate(records)
 			self.total_records = len(records)
 		finally:
 			client.close()
+
+	def reset_records(self):
+		self.get_remaining_records()

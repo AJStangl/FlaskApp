@@ -5,6 +5,7 @@
         <div class="card">
             <div class="card-header">
                 <p>Number of images remaining: {{ num_remaining }}</p>
+                <button id="reset" class="btn btn-primary" onclick="reset()">Reset</button>
             </div>
             <div class="card-body">
                 <div id="image-container" class="image-container">
@@ -59,7 +60,23 @@
             sendRequest("reject");
             document.getElementsByClassName("loading-container")[0].hidden = false;
         }
-
+        function reset() {
+            $.ajax({
+                url: "/secondary/reset/",
+                type: "POST",
+                header: {
+                    "content-type": "application/json"
+                },
+                data: {
+                    "id": "{{ content.id }}",
+                    "action": status,
+                    "subreddit": "{{ content.PartitionKey }}"
+                },
+                success: function (data) {
+                    window.location.href = data.redirect;
+                }
+            });
+        }
         function sendRequest(status) {
             const button = document.getElementById("accept");
             button.disabled = true;
