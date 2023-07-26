@@ -4,18 +4,20 @@ from flask import Blueprint, render_template, redirect, url_for, request, jsonif
 
 from shared_code.background import message_broker
 from shared_code.background.message_broker import MessageBroker
+from shared_code.services.primary_curation_service import PrimaryCurationService
 from shared_code.services.secondary_curation_service import SecondaryCurationService
 
 secondary_bp = Blueprint('secondary', __name__)
 
-message_broker: MessageBroker = MessageBroker()
+primary_curation_service: PrimaryCurationService = PrimaryCurationService("stage")
 secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curate")
+message_broker: MessageBroker = MessageBroker(primary_curation_service, secondary_curation_service)
 
 
 @secondary_bp.route('/secondary/')
 def secondary():
 	try:
-		record = secondary_curation_service.get_next_record()
+		record = secondary_curation_service.get_next_record()[1]
 
 		if record is None:
 			return render_template('error.jinja2', error="No more records to curate")
@@ -35,7 +37,7 @@ def secondary_image(name, subreddit):
 	try:
 		record = secondary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
 		image_link = secondary_curation_service.get_image_url(record_id=record.get('RowKey'), subreddit=record.get('PartitionKey'))
-		return render_template('secondary.jinja2', link=image_link, content=record, num_remaining=secondary_curation_service.get_num_remaining_records())
+		return render_template('secondary.jinja2', link=image_link, content=record, num_remaining=secondary_curation_service.total_records)
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
 
@@ -47,14 +49,15 @@ def secondary_curate():
 	action = request.form['action']
 
 	try:
+		message_external = {"id": image_id, "partition": subreddit, "action": action, "state": "curate-to-enrich"}
+		message_internal = {"id": image_id, "partition": subreddit, "action": action, "state": "secondary-to-enrich"}
 		if action == 'accept':
-			message = {"id": image_id, "partition": subreddit, "action": action, "state": "curate-to-enrich"}
-			secondary_curation_service.update_record(image_id, subreddit=subreddit, action=action)
-			message_broker.send_message(message, "curate-to-enrich")
+			message_broker.send_message(message_internal, "source-to-primary")
+			message_broker.send_message(message_external, "stage-to-curate")
 			resp = {"redirect": url_for('secondary.secondary')}
 			return resp
 		else:
-			secondary_curation_service.update_record(image_id, subreddit=subreddit, action=action)
+			message_broker.send_message(message_internal, "source-to-primary")
 			resp = {"redirect": url_for('secondary.secondary')}
 			return resp
 	except Exception as e:

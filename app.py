@@ -9,6 +9,9 @@ from endpoints.index import index_bp
 from endpoints.primary import primary_bp
 from endpoints.secondary import secondary_bp
 from endpoints.summary import summary_bp
+from shared_code.background.message_broker import MessageBroker
+from shared_code.services.primary_curation_service import PrimaryCurationService
+from shared_code.services.secondary_curation_service import SecondaryCurationService
 
 app = Flask(__name__)
 
@@ -28,7 +31,10 @@ app.register_blueprint(generations_bp)
 app.register_blueprint(api_bp)
 Bootstrap(app)
 
-
+primary_curation_service: PrimaryCurationService = PrimaryCurationService("stage")
+secondary_curation_service: SecondaryCurationService = SecondaryCurationService("curate")
+message_broker_primary: MessageBroker = MessageBroker(primary_curation_service, secondary_curation_service, "source-to-primary")
+message_broker_primary.start()
 
 if __name__ == '__main__':
     try:

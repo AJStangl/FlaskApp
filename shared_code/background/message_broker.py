@@ -19,11 +19,13 @@ logger = logging.getLogger(__name__)
 
 
 class MessageBroker(threading.Thread):
-	def __init__(self, name="curation-message-queue"):
+	def __init__(self, primary_curation_service, secondary_curation_service, name="curation-message-queue"):
 		super().__init__(name=name, daemon=True)
 		self.worker_thread = threading.Thread(target=self.run, name="curation-message-queue", daemon=True)
 		self.service = QueueServiceClient(account_url=os.environ["AZURE_QUEUE_ENDPOINT"], credential=os.environ["AZURE_ACCOUNT_KEY"])
 		self.queue_name: str = name
+		self.primary_curation_service = primary_curation_service
+		self.secondary_curation_service = secondary_curation_service
 
 	def try_initialize(self) -> QueueClient:
 		queue = self.service.get_queue_client(self.queue_name)
@@ -32,8 +34,11 @@ class MessageBroker(threading.Thread):
 		# noinspection PyBroadException
 		try:
 			queue.create_queue()
+			return queue
 		except Exception:
-			pass
+			return queue
+		finally:
+			return queue
 
 	def send_message(self, message: str, queue_name):
 		client = self.service.get_queue_client(queue_name)
@@ -50,28 +55,30 @@ class MessageBroker(threading.Thread):
 
 	def run(self):
 		try:
-			logger.info("== Starting message broker ==")
-			queue_client, dlq_client = self.try_initialize()
-
-			message = None
+			logger.info(f"== Starting message broker for {self.queue_name}==")
+			queue_client = self.try_initialize()
 			while True:
 				try:
 					message = queue_client.receive_message()
 					if message is None:
-						time.sleep(15)
 						continue
 					logger.info(f"Processing message: {message.content}")
 					data = json.loads(base64.b64decode(message.content))
-					image_id = data["image_id"]
-					subreddit = data["subreddit"]
+					image_id = data["id"]
+					subreddit = data["partition"]
 					action = data["action"]
-					primary_curation_service: PrimaryCurationService = PrimaryCurationService("stage")
-					primary_curation_service.update_record(image_id, subreddit, action)
-					time.sleep(15)
-					queue_client.delete_message(message)
+					state = data["state"]
+					if state == "source-to-primary":
+						self.primary_curation_service.update_record(image_id, subreddit, action)
+						queue_client.delete_message(message)
+					if state == "secondary-to-enrich":
+						self.secondary_curation_service.update_record(image_id, subreddit, action)
+						queue_client.delete_message(message)
 				except Exception as e:
 					logger.exception(f"Error: {str(e)}")
 					continue
+				finally:
+					time.sleep(1)
 
 		except Exception as e:
 			logger.info(f"Error: {str(e)}")

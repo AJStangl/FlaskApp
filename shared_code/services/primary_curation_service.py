@@ -12,16 +12,11 @@ class PrimaryCurationService(BaseService):
 	def __init__(self, table_name: str):
 		super().__init__(table_name)
 		self._table_adapter = TableAdapter()
+		self.records_to_process = None
+		self.total_records = 0
 
 	def get_table_client(self):
 		return self._table_adapter.get_table_client(self.table_name)
-
-	def get_num_remaining_records(self) -> int:
-		client = self.get_table_client()
-		try:
-			return len(list(client.query_entities("curated eq false", select=['id'])))
-		finally:
-			client.close()
 
 	def get_image_url(self, record_id: str, subreddit: str) -> str:
 		client = self.get_table_client()
@@ -35,6 +30,7 @@ class PrimaryCurationService(BaseService):
 		client = self.get_table_client()
 		try:
 			if action == "accept":
+				logger.info(f"Accepting record: {record_id}")
 				entity = client.get_entity(partition_key=subreddit, row_key=record_id)
 				stage_record = StageRecord(**entity)
 				stage_record.accepted = True
@@ -42,6 +38,7 @@ class PrimaryCurationService(BaseService):
 				client.upsert_entity(entity=stage_record.__dict__)
 				return None
 			else:
+				logger.info(f"Rejecting record: {record_id}")
 				entity = client.get_entity(partition_key=subreddit, row_key=record_id)
 				stage_record = StageRecord(**entity)
 				stage_record.accepted = False
@@ -60,9 +57,17 @@ class PrimaryCurationService(BaseService):
 			client.close()
 
 	def get_next_record(self):
+		if self.records_to_process is None:
+			self.get_remaining_records()
+			return next(self.records_to_process)
+		else:
+			return next(self.records_to_process)
+
+	def get_remaining_records(self):
 		client = self.get_table_client()
 		try:
-			entity = client.query_entities(query_filter="curated eq false")
-			return next(entity)
+			records = list(client.query_entities(query_filter="curated eq false"))
+			self.records_to_process = enumerate(records)
+			self.total_records = len(records)
 		finally:
 			client.close()
