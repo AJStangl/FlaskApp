@@ -19,7 +19,7 @@ class PrimaryCurationService(BaseService):
 	def get_num_remaining_records(self) -> int:
 		client = self.get_table_client()
 		try:
-			return len(list(client.query_entities("curated eq false")))
+			return len(list(client.query_entities("curated eq false", select=['id'])))
 		finally:
 			client.close()
 

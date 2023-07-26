@@ -13,7 +13,6 @@ primary_bp = Blueprint('primary', __name__)
 def primary():
 	try:
 		record = primary_curation_service.get_next_record()
-
 		if record is None:
 			return render_template('error.jinja2', error="No more records to curate")
 
@@ -30,7 +29,6 @@ def primary():
 @primary_bp.route('/primary/image/<name>/<subreddit>', methods=['GET'])
 def primary_image(name, subreddit):
 	try:
-		# primary_curation_service.get_num_remaining_records()
 		record = primary_curation_service.get_record_by_id(record_id=name, subreddit=subreddit)
 		image_link = primary_curation_service.get_image_url(record_id=record.get('RowKey'), subreddit=record.get('PartitionKey'))
 		remaining = primary_curation_service.get_num_remaining_records()

@@ -8,6 +8,8 @@ import time
 
 from azure.storage.queue import QueueServiceClient, QueueClient, BinaryBase64EncodePolicy, BinaryBase64DecodePolicy
 
+from shared_code.services.primary_curation_service import PrimaryCurationService
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 logging.getLogger("diffusers").setLevel(logging.WARNING)
@@ -60,6 +62,11 @@ class MessageBroker(threading.Thread):
 						continue
 					logger.info(f"Processing message: {message.content}")
 					data = json.loads(base64.b64decode(message.content))
+					image_id = data["image_id"]
+					subreddit = data["subreddit"]
+					action = data["action"]
+					primary_curation_service: PrimaryCurationService = PrimaryCurationService("stage")
+					primary_curation_service.update_record(image_id, subreddit, action)
 					time.sleep(15)
 					queue_client.delete_message(message)
 				except Exception as e:
