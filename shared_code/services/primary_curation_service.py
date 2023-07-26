@@ -69,6 +69,10 @@ class PrimaryCurationService(BaseService):
 		try:
 			records = list(client.query_entities(query_filter="curated eq false"))
 			random.shuffle(records)
+			if len(records) == 0:
+				self.records_to_process = []
+				self.total_records = 0
+				return
 			self.records_to_process = enumerate(records)
 			self.total_records = len(records)
 		finally:
