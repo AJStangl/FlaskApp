@@ -9,7 +9,7 @@
             </div>
             <div class="card-body">
                 <div id="image-container" class="image-container">
-                    <div class="image-wrapper" onclick="showFullscreenImage('{{ link }}')"
+                    <div id="image-wrapper"  class="image-wrapper" onclick="showFullscreenImage('{{ link }}')"
                          style="width: auto; height: auto; background-image: url('{{ link }}')">
                         <img id="primary-image" alt="" src="{{ link }}">
                         <div id="image-label" class="image-label">Original Image</div>
@@ -46,64 +46,95 @@
             </div>
         </div>
     </div>
-    <script>
-        document.onreadystatechange = () => {
-            getInstrinsicSize(document.getElementById('primary-image'), 'image-label')
-        }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+<script>
+// Create a new instance of Hammer with the reference to the div
+var hammerInstance = new Hammer(document.getElementById('image-wrapper'));
 
-        function accept() {
-            sendRequest("accept")
-            document.getElementsByClassName("loading-container")[0].hidden = false;
-        }
+// Listen for a swipe to the left. This will now trigger the accept() function.
+hammerInstance.on('swipeleft', function(ev) {
+    console.log("swipe left")
+  console.log(ev)
+  accept();
+});
 
-        function reject() {
-            sendRequest("reject");
-            document.getElementsByClassName("loading-container")[0].hidden = false;
-        }
-        function reset() {
-            $.ajax({
-                url: "/secondary/reset/",
-                type: "POST",
-                header: {
-                    "content-type": "application/json"
-                },
-                data: {
-                    "id": "{{ content.id }}",
-                    "action": status,
-                    "subreddit": "{{ content.PartitionKey }}"
-                },
-                success: function (data) {
-                    window.location.href = data.redirect;
-                }
-            });
-        }
-        function sendRequest(status) {
-            const button = document.getElementById("accept");
-            button.disabled = true;
-            button.hidden = true;
+// Listen for a swipe to the right. This will now trigger the reject() function.
+hammerInstance.on('swiperight', function(ev) {
+    console.log("swipe right")
+    console.log(ev)
+  reject();
+});
+</script>
+<script>
+    document.onreadystatechange = () => {
+        getInstrinsicSize(document.getElementById('primary-image'), 'image-label')
+    }
 
-            const button2 = document.getElementById("reject");
-            button2.disabled = true;
-            button2.hidden = true;
+    function accept() {
+        sendRequest("accept")
+        document.getElementsByClassName("loading-container")[0].hidden = false;
+    }
 
-            const image_container = document.getElementById("image-container");
-            image_container.hidden = true;
+    function reject() {
+        sendRequest("reject");
+        document.getElementsByClassName("loading-container")[0].hidden = false;
+    }
 
-            $.ajax({
-                url: "/secondary/curate/",
-                type: "POST",
-                header: {
-                    "content-type": "application/json"
-                },
-                data: {
-                    "id": "{{ content.id }}",
-                    "action": status,
-                    "subreddit": "{{ content.PartitionKey }}"
-                },
-                success: function (data) {
-                    window.location.href = data.redirect;
-                }
-            });
+    function reset() {
+        $.ajax({
+            url: "/secondary/reset/",
+            type: "POST",
+            header: {
+                "content-type": "application/json"
+            },
+            data: {
+                "id": "{{ content.id }}",
+                "action": status,
+                "subreddit": "{{ content.PartitionKey }}"
+            },
+            success: function (data) {
+                window.location.href = data.redirect;
+            }
+        });
+    }
+
+    function sendRequest(status) {
+        const button = document.getElementById("accept");
+        button.disabled = true;
+        button.hidden = true;
+
+        const button2 = document.getElementById("reject");
+        button2.disabled = true;
+        button2.hidden = true;
+
+        const image_container = document.getElementById("image-container");
+        image_container.hidden = true;
+
+        $.ajax({
+            url: "/secondary/curate/",
+            type: "POST",
+            header: {
+                "content-type": "application/json"
+            },
+            data: {
+                "id": "{{ content.id }}",
+                "action": status,
+                "subreddit": "{{ content.PartitionKey }}"
+            },
+            success: function (data) {
+                window.location.href = data.redirect;
+            }
+        });
+    }
+
+    // Add event listener for keydown events
+    document.addEventListener('keydown', function(event) {
+        console.log(event)
+        if (event.key === 'y' || event.key === 'ArrowRight') {
+            accept();
+        }if (event.key === 'n' || event.key === 'ArrowLeft') {
+            reject();
         }
-    </script>
+    });
+</script>
 {% endblock %}
