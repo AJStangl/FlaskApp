@@ -13,7 +13,7 @@ summary_bp = Blueprint('summary', __name__)
 
 @summary_bp.route('/summary/')
 def summary():
-	client = table_adapter.service.get_table_client("enrich")
+	client = table_adapter.service.get_table_client("training")
 	try:
 		tables = list(table_adapter.service.list_tables())
 		entities = client.list_entities()
