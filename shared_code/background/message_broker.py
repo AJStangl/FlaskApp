@@ -5,6 +5,7 @@ import os
 import sys
 import threading
 import time
+from typing import Optional
 
 from azure.storage.queue import QueueServiceClient, QueueClient, BinaryBase64EncodePolicy, BinaryBase64DecodePolicy
 
@@ -18,11 +19,37 @@ logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(l
 logger = logging.getLogger(__name__)
 
 
+class SimpleBroker:
+	def __init__(self):
+		self.service = QueueServiceClient(account_url=os.environ["AZURE_QUEUE_ENDPOINT"], credential=os.environ["AZURE_ACCOUNT_KEY"])
+
+	def send_message(self, title: str, subreddit: str, prompt: str):
+		client = self.service.get_queue_client("create-image-for-reddit")
+		try:
+			message = {
+				"title": title,
+				"subreddit": subreddit,
+				"prompt": prompt
+			}
+			client.message_encode_policy = BinaryBase64EncodePolicy()
+			client.message_decode_policy = BinaryBase64DecodePolicy()
+			dumped = json.dumps(message).encode('utf-8')
+			client.send_message(client.message_encode_policy.encode(content=dumped))
+
+		except Exception as e:
+			logger.exception(f"Error: {str(e)}")
+			return
+
+		finally:
+			client.close()
+
+
 class MessageBroker(threading.Thread):
 	def __init__(self, primary_curation_service, secondary_curation_service, name="curation-message-queue"):
 		super().__init__(name=name, daemon=True)
 		self.worker_thread = threading.Thread(target=self.run, name="curation-message-queue", daemon=True)
-		self.service = QueueServiceClient(account_url=os.environ["AZURE_QUEUE_ENDPOINT"], credential=os.environ["AZURE_ACCOUNT_KEY"])
+		self.service = QueueServiceClient(account_url=os.environ["AZURE_QUEUE_ENDPOINT"],
+										  credential=os.environ["AZURE_ACCOUNT_KEY"])
 		self.queue_name: str = name
 		self.primary_curation_service = primary_curation_service
 		self.secondary_curation_service = secondary_curation_service

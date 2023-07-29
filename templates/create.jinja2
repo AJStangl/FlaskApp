@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+User Input
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Enter Your Details</h5>
+     <form id="card-form">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" placeholder="Post Title">
+      </div>
+      <div class="form-group">
+        <label for="subreddit">Sub</label>
+        <input type="text" class="form-control" id="subreddit" value="CoopAndPabloArtHouse" placeholder="Enter a subreddit">
+      </div>
+      <div class="form-group">
+        <label for="prompt">Prompt</label>
+        <textarea class="form-control" id="prompt" rows="3" placeholder="Enter your prompt"></textarea>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="sendData()">Submit</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function sendData() {
+  const title = document.getElementById('title').value;
+  const subreddit = document.getElementById('subreddit').value;
+  const prompt = document.getElementById('prompt').value;
+
+  const data = {title, subreddit, prompt};
+
+  fetch('{{ url_for('create.card') }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Flask needs this header to understand the request as AJAX
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(data => window.location.href = data.redirect)
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+}
+</script>
+{% endblock %}
