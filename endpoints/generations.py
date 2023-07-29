@@ -28,6 +28,7 @@ def generations():
 			max_rows -= 1
 
 		data.sort(key=lambda x: x["RowKey"], reverse=False)
+		data = data[0: 100]
 		subs = get_subs()
 		return render_template('generations.jinja2', data=data, subs=list(subs.keys()))
 	except Exception as e:
