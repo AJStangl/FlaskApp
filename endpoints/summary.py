@@ -19,7 +19,10 @@ def summary():
 		entities = client.list_entities()
 		df = pandas.DataFrame(data=[dict(item) for item in entities])
 		plt.figure(figsize=(12, 8), dpi=100)
-		grouped = (df.groupby("PartitionKey")["accepted"].agg(total_count="count", accepted_true=lambda x: x.sum()))
+		grouped = df.groupby("PartitionKey").agg(
+			total_count=pandas.NamedAgg(column='accepted', aggfunc='count'),
+			trained_count=pandas.NamedAgg(column='training_count', aggfunc='sum')
+		)
 		grouped.plot(kind='bar', stacked=False)
 		plt.title('Accepted Status Counts by PartitionKey')
 		plt.xlabel('PartitionKey')
@@ -27,13 +30,12 @@ def summary():
 		plt.tight_layout()
 		image = BytesIO()
 		plt.savefig(image, format='png')
-		table_html = df.to_html()
+		# table_html = df.to_html()
 		image.seek(0)
 		plot_url = base64.b64encode(image.getvalue()).decode('utf8')
-		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url, table_html=table_html)
+		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url, table_html="<table></table>")
 	except Exception as e:
 		return render_template('error.jinja2', error=e)
-
 	finally:
 		client.close()
 
