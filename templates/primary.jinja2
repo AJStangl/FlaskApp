@@ -46,6 +46,25 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script>
+// Create a new instance of Hammer with the reference to the div
+var hammerInstance = new Hammer(document.getElementById('image-wrapper'));
+
+// Listen for a swipe to the left. This will now trigger the accept() function.
+hammerInstance.on('swipeleft', function(ev) {
+    console.log("swipe left")
+  console.log(ev)
+  accept();
+});
+
+// Listen for a swipe to the right. This will now trigger the reject() function.
+hammerInstance.on('swiperight', function(ev) {
+    console.log("swipe right")
+    console.log(ev)
+  reject();
+});
+</script>
     <script>
         document.onreadystatechange = () => {
             getInstrinsicSize(document.getElementById('primary-image'), 'image-label')
@@ -107,5 +126,15 @@
                 }
             });
         }
+
+        // Add event listener for keydown events
+        document.addEventListener('keydown', function(event) {
+        console.log(event)
+        if (event.key === 'y' || event.key === 'ArrowRight') {
+            accept();
+        }if (event.key === 'n' || event.key === 'ArrowLeft') {
+            reject();
+        }
+    });
     </script>
 {% endblock %}
