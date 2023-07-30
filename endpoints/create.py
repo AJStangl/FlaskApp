@@ -24,5 +24,3 @@ def card():
 	message_broker.send_message(title, subreddit, prompt)
 	resp = {"redirect": url_for('create.create')}
 	return jsonify(resp)
-
-
