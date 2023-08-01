@@ -106,85 +106,63 @@
             </div>
         </div>
     </div>
+<script>
+    $(document).ready(function () {
+        const table = $('#dataTable').DataTable();
 
-    <script>
-        $(document).ready(function () {
-            $('#search-button').click(function () {
-                const button = document.getElementById("search-button");
-                button.setAttribute("disabled", "");
-                const table = document.getElementById("table-data");
-                table.setAttribute("hidden", "");
-                const loading_spinner = document.getElementById("loading-spinner");
-                loading_spinner.removeAttribute("hidden");
+        $('#search-button').click(function () {
+            const button = $("#search-button");
+            button.attr("disabled", "");
+            table.clear().draw();  // clear the existing data
+            const loading_spinner = $("#loading-spinner");
+            loading_spinner.removeAttr("hidden");
 
-                const query = $('#query-input').val();
+            const query = $('#query-input').val();
 
-                $.ajax({
-                    url: '/summary/data',
-                    type: 'POST',
-                    data: {
-                        table: $('#dropdown').val(),
-                        query: query,
-                        limit: $('#limit').val()
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        populateTable(response);
-                        loading_spinner.setAttribute("hidden", "");
-                        table.removeAttribute("hidden");
-                        button.removeAttribute("disabled");
-                    }
-                });
+            $.ajax({
+                url: '/summary/data',
+                type: 'POST',
+                data: {
+                    table: $('#dropdown').val(),
+                    query: query,
+                    limit: $('#limit').val()
+                },
+                dataType: 'json',
+                success: function (response) {
+                    populateTable(response, table);
+                    loading_spinner.attr("hidden", "");
+                    button.removeAttr("disabled");
+                }
             });
-
-            function populateTable(data) {
-                const table = $('#table-data');
-                table.empty();
-
-                $.each(data.headers, function (index, header) {
-                    table.append($('<th></th>').text(header));
-                });
-
-                $.each(data.data, function (index, row) {
-                    const tableRow = $('<tr></tr>');
-                    $.each(row, function (i, value) {
-                        tableRow.append($('<td></td>').text(value));
-                    });
-                    table.append(tableRow);
-                });
-            }
         });
-    </script>
-    <script>
-        window.onload = function () {
-            document.getElementById('loading').style.display = 'block';
-            fetch('/api/list-stats')
-                .then(response => response.json())
-                .then(data => {
-                    var table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-                    data.forEach(function (item) {
-                        var row = table.insertRow();
-                        var cell1 = row.insertCell(0);
-                        var cell2 = row.insertCell(1);
-                        var cell3 = row.insertCell(2);
-                        var cell4 = row.insertCell(3);
-                        cell1.innerHTML = item.SubName;
-                        cell2.innerHTML = item.Trained;
-                        cell3.innerHTML = item.Untrained;
-                        cell4.innerHTML = item.Total;
-                    });
-                    // Hide Loading Icon
-                     document.getElementById('loading').style.display = 'none';
-                })
-                .catch(error => {
-                     document.getElementById('loading').style.display = 'none';
-                     console.error('Error:', error)
+
+        function populateTable(data, table) {
+            $.each(data.data, function (index, row) {
+                table.row.add(row).draw();  // add a new row
+            });
+        }
+    });
+
+    window.onload = function () {
+        document.getElementById('loading').style.display = 'block';
+        fetch('/api/list-stats')
+            .then(response => response.json())
+            .then(data => {
+                var table = $('#dataTable').DataTable();  // initialize DataTable on #dataTable
+                data.forEach(function (item) {
+                    console.log(item)
+                    table.row.add([item.SubName, item.Trained, item.Untrained, item.Total]).draw();  // add a new row
                 });
-
-
-        };
-    </script>
-    <style>
+                // Hide Loading Icon
+                document.getElementById('loading').style.display = 'none';
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                console.error('Error:', error)
+            });
+    };
+</script>
+<style>
         body {
             font-family: Arial, sans-serif;
         }

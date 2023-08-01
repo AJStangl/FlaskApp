@@ -10,43 +10,45 @@
     <!--suppress JSUnresolvedLibraryURL -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.20/datatables.min.css"/>
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
 <div class="container">
-        <div class="header-bar">
-            <div class="container">
-                <h1>Image Curation Application</h1>
-            </div>
-            <div class="toolbar">
-                <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav">
-                            <li class="nav-item active">
-                                <a class="nav-link" href="{{ url_for('primary.primary') }}">Primary Curation</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('secondary.secondary') }}">Secondary Curation</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('summary.summary') }}">Summary</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('generations.generations') }}">Generations</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('create.create') }}">Create</a>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-            </div>
+    <div class="header-bar">
+        <div class="container">
+            <h1>Image Curation Application</h1>
+        </div>
+        <div class="toolbar">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="{{ url_for('primary.primary') }}">Primary Curation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('secondary.secondary') }}">Secondary Curation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('summary.summary') }}">Summary</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('generations.generations') }}">Generations</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('create.create') }}">Create</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
         </div>
     </div>
+</div>
 
 
 <!-- Optional JavaScript -->
@@ -360,5 +362,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.panzoom/4.0.0/panzoom.min.js"
         integrity="sha512-9P4403el58YclVUmhMst5Bzpcy+i0V0F0wiMlrkTDgmVqYXhF+tccpnhGIHKzKPXKaTF0Q4J9UEhu2i6PckJWg=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.20/datatables.min.js"></script>
 </body>
 </html>
