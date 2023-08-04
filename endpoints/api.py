@@ -129,7 +129,7 @@ def list_stats():
 	records = []
 
 	try:
-		list_of_subs = list(client.list_entities(select=['PartitionKey']))
+		list_of_subs = list(client.query_entities(query_filter=f"source eq 'reddit'", select=['PartitionKey']))
 		foo = dict(pandas.DataFrame(data=list_of_subs).groupby("PartitionKey").value_counts())
 		for elem in foo:
 			record = {
@@ -139,7 +139,7 @@ def list_stats():
 				"Total": foo[elem]
 			}
 			listing = list(client.query_entities(select=['PartitionKey', "RowKey", "training_count"],
-												 query_filter=f"PartitionKey eq '{elem}'"))
+												 query_filter=f"PartitionKey eq '{elem}' and source eq 'reddit'"))
 			for item in listing:
 				if item['training_count'] == 0:
 					record["Untrained"] += 1

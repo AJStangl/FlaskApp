@@ -16,7 +16,7 @@ def summary():
 	client = table_adapter.service.get_table_client("training")
 	try:
 		tables = list(table_adapter.service.list_tables())
-		entities = client.list_entities()
+		entities = list(client.query_entities(query_filter="source eq 'reddit'"))
 		df = pandas.DataFrame(data=[dict(item) for item in entities])
 		plt.figure(figsize=(12, 8), dpi=100)
 		grouped = df.groupby("PartitionKey").agg(
@@ -42,7 +42,7 @@ def summary():
 
 @summary_bp.route('/summary-train/')
 def summary_train():
-	client = table_adapter.service.get_table_client("train")
+	client = table_adapter.service.get_table_client("training")
 	try:
 		tables = list(table_adapter.service.list_tables())
 		accepted_entities = client.list_entities()
@@ -113,7 +113,7 @@ def get_stats_graph():
 	return plt, response
 
 
-def list_stats(table_name="tempTraining"):
+def list_stats(table_name="training"):
 	client = table_adapter.service.get_table_client(table_name)
 	records = []
 	try:
