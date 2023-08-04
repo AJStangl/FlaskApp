@@ -53,7 +53,7 @@ def secondary_curate():
 		message_internal = {"id": image_id, "partition": subreddit, "action": action, "state": "secondary-to-enrich"}
 		if action == 'accept':
 			message_broker.send_message(message_internal, "source-to-primary")
-			message_broker.send_message(message_external, "stage-to-curate")
+			message_broker.send_message(message_external, "curate-to-enrich")
 			resp = {"redirect": url_for('secondary.secondary')}
 			return resp
 		else:
