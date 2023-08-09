@@ -16,7 +16,9 @@ def summary():
 	client = table_adapter.service.get_table_client("training")
 	try:
 		tables = list(table_adapter.service.list_tables())
-		entities = list(client.query_entities(query_filter="source eq 'reddit'"))
+
+		entities = list(client.list_entities())
+
 		df = pandas.DataFrame(data=[dict(item) for item in entities])
 		plt.figure(figsize=(12, 8), dpi=100)
 		grouped = df.groupby("PartitionKey").agg(
@@ -30,7 +32,6 @@ def summary():
 		plt.tight_layout()
 		image = BytesIO()
 		plt.savefig(image, format='png')
-		# table_html = df.to_html()
 		image.seek(0)
 		plot_url = base64.b64encode(image.getvalue()).decode('utf8')
 		return render_template('summary.jinja2', options=[item.name for item in tables], plot_url=plot_url, table_html="<table></table>")

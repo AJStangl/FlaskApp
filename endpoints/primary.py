@@ -14,7 +14,7 @@ primary_bp = Blueprint('primary', __name__)
 @primary_bp.route('/primary/')
 def primary():
 	try:
-		record = primary_curation_service.get_next_record()[1]
+		record = primary_curation_service.get_next_record()
 		if record is None:
 			return render_template('error.jinja2', error="No more records to curate")
 		else:
@@ -22,6 +22,7 @@ def primary():
 			subreddit = record['PartitionKey']
 			return redirect(url_for('primary.primary_image', name=name, subreddit=subreddit))
 	except StopIteration:
+		primary_curation_service.records_to_process = None
 		return render_template('error.jinja2', error="No more records to curate")
 	except Exception as e:
 		return render_template('error.jinja2', error=f"An unknown error has occurred: {e}")

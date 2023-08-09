@@ -17,7 +17,7 @@ message_broker: MessageBroker = MessageBroker(primary_curation_service, secondar
 @secondary_bp.route('/secondary/')
 def secondary():
 	try:
-		record = secondary_curation_service.get_next_record()[1]
+		record = secondary_curation_service.get_next_record()
 
 		if record is None:
 			return render_template('error.jinja2', error="No more records to curate")
@@ -27,6 +27,7 @@ def secondary():
 			subreddit = record['PartitionKey']
 			return redirect(url_for('secondary.secondary_image', name=name, subreddit=subreddit))
 	except StopIteration:
+		secondary_curation_service.records_to_process = None
 		return render_template('error.jinja2', error="No more records to curate")
 	except Exception as e:
 		return render_template('error.jinja2', error=f"An unknown error has occurred: {e}")
