@@ -18,6 +18,7 @@ def primary():
 		if record is None:
 			return render_template('error.jinja2', error="No more records to curate")
 		else:
+			record = list(record)[-1]
 			name = record['id']
 			subreddit = record['PartitionKey']
 			return redirect(url_for('primary.primary_image', name=name, subreddit=subreddit))

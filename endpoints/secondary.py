@@ -18,11 +18,11 @@ message_broker: MessageBroker = MessageBroker(primary_curation_service, secondar
 def secondary():
 	try:
 		record = secondary_curation_service.get_next_record()
-
 		if record is None:
 			return render_template('error.jinja2', error="No more records to curate")
 
 		else:
+			record = list(record)[-1]
 			name = record['RowKey']
 			subreddit = record['PartitionKey']
 			return redirect(url_for('secondary.secondary_image', name=name, subreddit=subreddit))
