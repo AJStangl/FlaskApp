@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def generations():
 	client = table_adapter.service.get_table_client("generations")
 	try:
-		max_rows = 100
+		max_rows = 1000
 		data = []
 		accepted_entities = client.list_entities()
 		for elem in accepted_entities:
@@ -56,9 +56,7 @@ def send_to_reddit():
 	image_data.seek(0)
 	with open("temp.png", 'wb') as f:
 		f.write(image_data.read())
-		submission = sub_instance.submit_image(f"{title}", "temp.png", nsfw=False)
-		logger.info(submission)
-
+		sub_instance.submit_image(f"{title}", "temp.png", nsfw=False, without_websockets=True)
 	return jsonify({
 		"success": True,
 		"message": f"Sent {path} to {sub} with title {title}"
